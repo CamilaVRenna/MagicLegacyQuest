@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: becbb2440c6448d4c8eddd01c6a83334, type: 3}
+  m_Name: Pedido_PocionDebilidad
+  m_EditorClassIdentifier: 
+  nombreIdentificador: PocionDebilidad
+  ingredientesRequeridos:
+  - {fileID: 11400000, guid: 27b67ec95a0a7584f8fe6405433c86e0, type: 2}
+  - {fileID: 11400000, guid: 27b67ec95a0a7584f8fe6405433c86e0, type: 2}
+  - {fileID: 11400000, guid: ebd58f5de6a2345409db26ca12d0b729, type: 2}
+  - {fileID: 11400000, guid: ebd58f5de6a2345409db26ca12d0b729, type: 2}
+  - {fileID: 11400000, guid: b8bf0155fe3dd1b4383d3368e0821b24, type: 2}
+  dialogoPedido: "Estoy por enfrentarme a una gran Bestia \xA1pero es muy fuerte!
+    \xBFPodrias ayudarme?"
+  nombreResultadoPocion: Pocion de Debilidad
+  materialResultado: {fileID: 2100000, guid: 8cf58e115109c3e4abf25f29cbcd3adc, type: 2}
+  imagenPocion: {fileID: 21300000, guid: 89e35a2fce28d1d46831102ac1e6d52e, type: 3}
+  descripcionPocion: 'Descripcion: Esta pocion convierte al mas fuerte al mas debil
+    en cuestion de segundos'

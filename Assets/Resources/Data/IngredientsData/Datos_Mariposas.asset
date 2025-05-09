@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9519a77358e9a8b498bcf3c41273f0f5, type: 3}
+  m_Name: Datos_Mariposas
+  m_EditorClassIdentifier: 
+  nombreIngrediente: Mariposas
+  icono: {fileID: 21300000, guid: 09cf680909b87c94fb0f54e9f4f5cc36, type: 3}
+  prefabModelo3D: {fileID: 533020922383877473, guid: f06fc2b14c53fa246ab8daa38b7d0ce4, type: 3}
+  prefabRecolectable: {fileID: 7612283972276496141, guid: 9a4653fd58919c54fb70cd26bcce0790, type: 3}
+  rotacionEnMano: {x: 45, y: 35, z: 0}

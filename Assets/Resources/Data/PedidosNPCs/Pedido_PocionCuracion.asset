@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: becbb2440c6448d4c8eddd01c6a83334, type: 3}
+  m_Name: Pedido_PocionCuracion
+  m_EditorClassIdentifier: 
+  nombreIdentificador: PocionCuracion
+  ingredientesRequeridos:
+  - {fileID: 11400000, guid: 99ba73d0bfc819143a0bc1a9de2ae209, type: 2}
+  - {fileID: 11400000, guid: ebd58f5de6a2345409db26ca12d0b729, type: 2}
+  - {fileID: 11400000, guid: 27b67ec95a0a7584f8fe6405433c86e0, type: 2}
+  dialogosPedidoGenericos:
+  - "Estoy m\xE1s roto que una espada oxidada. \xBFTen\xE9s algo me restaure?"
+  - Necesito una de esas que reparan cuerpo y alma.
+  - "Algo que cierre heridas y limpie el dolor, \xBFme das una?"
+  - "He tenido mejores d\xEDas\u2026 \xBFme ayudas a tener uno mejor?"
+  - "Una poci\xF3n curativa. Lo antes posible."
+  - "Para seguir luchando, necesito sanar. \xBFQu\xE9 ten\xE9s para m\xED?"
+  clavePocion: Curacion
+  nombreResultadoPocion: Pocion de Curacion
+  materialResultado: {fileID: 2100000, guid: 0443cd347cc53974a904818f3b29647f, type: 2}
+  imagenPocion: {fileID: 21300000, guid: dca369fd30dd9f743b8946f7d7ae8cf1, type: 3}
+  descripcionPocion: 'Descripcion: Una pocion que vigoriza hasta a los casi muertos'

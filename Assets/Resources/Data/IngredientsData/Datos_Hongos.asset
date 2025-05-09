@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9519a77358e9a8b498bcf3c41273f0f5, type: 3}
+  m_Name: Datos_Hongos
+  m_EditorClassIdentifier: 
+  nombreIngrediente: Hongo
+  icono: {fileID: 21300000, guid: b224398c3f639814f996b6f1e90c366c, type: 3}
+  prefabModelo3D: {fileID: 967169137211902822, guid: 9cc7922b09740344d80d78de5d9f3c68, type: 3}
+  prefabRecolectable: {fileID: 8059241282763327235, guid: ef85c45af897f1a48bf9fb5e6bfc2619, type: 3}
+  rotacionEnMano: {x: -90, y: 0, z: 0}

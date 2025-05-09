@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9519a77358e9a8b498bcf3c41273f0f5, type: 3}
+  m_Name: Datos_Huesos
+  m_EditorClassIdentifier: 
+  nombreIngrediente: Huesos
+  icono: {fileID: 21300000, guid: 62856b3c572e39a4a8c73938b1c14cfe, type: 3}
+  prefabModelo3D: {fileID: 6648015209869508235, guid: 1a2f95d221e58ab4f8515e923c07b804, type: 3}
+  prefabRecolectable: {fileID: 469901582374220952, guid: 75bef0213acf0784a9d8bc557036b23f, type: 3}
+  rotacionEnMano: {x: 20, y: 20, z: 25}

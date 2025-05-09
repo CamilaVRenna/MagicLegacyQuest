@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: becbb2440c6448d4c8eddd01c6a83334, type: 3}
+  m_Name: Pedido_PocionAmor
+  m_EditorClassIdentifier: 
+  nombreIdentificador: PocionAmor
+  ingredientesRequeridos:
+  - {fileID: 11400000, guid: e3e8cf6babe0f074aae6146464a28efa, type: 2}
+  - {fileID: 11400000, guid: 99ba73d0bfc819143a0bc1a9de2ae209, type: 2}
+  - {fileID: 11400000, guid: b8bf0155fe3dd1b4383d3368e0821b24, type: 2}
+  dialogosPedidoGenericos:
+  - "Necesito algo que haga latir m\xE1s r\xE1pido un coraz\xF3n\u2026 y no el m\xEDo."
+  - "Una pizca de romance, dos gotas de deseo\u2026 \xBFme das una de esas?"
+  - "\xBFTen\xE9s algo que me ayude a conquistar una mirada esquiva?"
+  - "Dicen que el amor no se compra, pero una poci\xF3n no estar\xEDa mal."
+  - Estoy perdidamente enamorado. Me falta solo tu ayuda embotellada.
+  - "\xBFPod\xE9s prepararme algo que endulce las palabras y despierte sentimientos?"
+  clavePocion: Amor
+  nombreResultadoPocion: Pocion de Amor
+  materialResultado: {fileID: 2100000, guid: 6b786ae582c20fe40b7e01cd8f657d6f, type: 2}
+  imagenPocion: {fileID: 21300000, guid: 3a2b4d4f6c891c444ab9258ecbe76a09, type: 3}
+  descripcionPocion: "Descripci\xF3n: Con esta poci\xF3n se derrite hasta el coraz\xF3n
+    mas helado"

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b4dd7691daa77a4b95783736d9061c7, type: 3}
+  m_Name: FrascoVacioData
+  m_EditorClassIdentifier: 
+  nombreItem: "Frasco Vac\xEDo"
+  icono: {fileID: 21300000, guid: 218fae68d8c154244b1f3099ea1ef22a, type: 3}
+  prefabModelo3D: {fileID: 5653174031220002000, guid: 3e6a396daa9186741a6e0b9b1d124928, type: 3}
+  materialVacio: {fileID: 2100000, guid: 55c2ee566bc5b7d4bb09a6bf8faff3fe, type: 2}
+  materialLleno: {fileID: 2100000, guid: 67cb4b1ca2348f645a03bc7a017510a7, type: 2}
+  rotacionEnMano: {x: 0, y: 0, z: 0}
