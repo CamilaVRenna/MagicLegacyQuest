@@ -2796,11 +2796,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89aa7a5b7eeaee64a965a3416a6786ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameScene: TiendaDeMagia
-  helpPanel: {fileID: 0}
-  nextButton: {fileID: 0}
-  newGameButton: {fileID: 0}
-  confirmNewGamePanel: {fileID: 0}
+  nombreEscenaJuego: TiendaDeMagia
+  panelAyuda: {fileID: 113001517}
+  botonContinuar: {fileID: 0}
+  botonNuevaPartida: {fileID: 0}
+  panelConfirmacionNuevaPartida: {fileID: 0}
 --- !u!1 &1124236019
 GameObject:
   m_ObjectHideFlags: 0
@@ -3542,8 +3542,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1044119015}
-        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
-        m_MethodName: OnExitPressed
+        m_TargetAssemblyTypeName: ControladorMenuPrincipal, Assembly-CSharp
+        m_MethodName: BotonSalirPresionado
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4956,8 +4956,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1044119015}
-        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
-        m_MethodName: OnPlayPressed
+        m_TargetAssemblyTypeName: ControladorMenuPrincipal, Assembly-CSharp
+        m_MethodName: BotonNuevaPartidaPresionado
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5341,8 +5341,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1044119015}
-        m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
-        m_MethodName: OnHelpPressed
+        m_TargetAssemblyTypeName: ControladorMenuPrincipal, Assembly-CSharp
+        m_MethodName: BotonAyudaPresionado
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
