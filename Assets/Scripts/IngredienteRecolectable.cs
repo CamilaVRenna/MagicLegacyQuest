@@ -5,10 +5,10 @@ using TMPro;
 [RequireComponent(typeof(Collider))]
 public class IngredienteRecolectable : MonoBehaviour
 {
-    [Tooltip("Asigna aquí el ScriptableObject del ingrediente que este objeto representa.")]
+    [Tooltip("Asigna aquï¿½ el ScriptableObject del ingrediente que este objeto representa.")]
     public DatosIngrediente datosIngrediente; // <<--- ASIGNAR EN EL PREFAB
 
-    [Header("Interacción y UI")]
+    [Header("Interacciï¿½n y UI")]
     public string textoIndicador = "Recolectar [E]";
     [Tooltip("Arrastra el prefab InfoCanvas.")]
     public GameObject prefabCanvasInfo; // <<--- ASIGNAR EN EL PREFAB
@@ -17,7 +17,7 @@ public class IngredienteRecolectable : MonoBehaviour
     // Referencia al punto de spawn (lo asigna el GestorRecoleccionBosque al crearlo)
     [HideInInspector] public PuntoSpawnRecoleccion puntoOrigen = null;
 
-    // --- Métodos para Mostrar/Ocultar Indicador ---
+    // --- Mï¿½todos para Mostrar/Ocultar Indicador ---
     public void MostrarInformacion()
     {
         if (prefabCanvasInfo == null || datosIngrediente == null) return;
@@ -42,20 +42,24 @@ public class IngredienteRecolectable : MonoBehaviour
     }
     public void OcultarInformacion() { if (canvasInfoActual != null) { canvasInfoActual.SetActive(false); } }
     void OnDestroy() { if (canvasInfoActual != null) { Destroy(canvasInfoActual); } }
-    // --- Fin Métodos Indicador ---
+    // --- Fin Mï¿½todos Indicador ---
 
 
-    // --- Método llamado por InteraccionJugador al presionar E ---
+    // --- Mï¿½todo llamado por InteraccionJugador al presionar E ---
     public void Recolectar()
     {
+                if (InventoryManager.Instance != null && datosIngrediente != null)
+        {
+            InventoryManager.Instance.AddItem(datosIngrediente.nombreIngrediente);
+        }
         if (datosIngrediente == null) return;
 
         Debug.Log($"Recolectado: {datosIngrediente.nombreIngrediente}");
         bool anadido = false;
         if (GestorJuego.Instance != null)
         {
-            // Añadir al stock global
-            GestorJuego.Instance.AnadirStockTienda(datosIngrediente, 1); // Añade 1
+            // Aï¿½adir al stock global
+            GestorJuego.Instance.AnadirStockTienda(datosIngrediente, 1); // Aï¿½ade 1
             anadido = true;
 
             // Marcar el punto de origen como recolectado hoy
@@ -65,12 +69,12 @@ public class IngredienteRecolectable : MonoBehaviour
                 puntoOrigen.objetoInstanciadoActual = null; // El punto queda libre
             }
         }
-        else { Debug.LogError("No se encontró GestorJuego para añadir al stock."); }
+        else { Debug.LogError("No se encontrï¿½ GestorJuego para aï¿½adir al stock."); }
 
-        // Destruir el objeto SOLO si se pudo añadir al stock
+        // Destruir el objeto SOLO si se pudo aï¿½adir al stock
         if (anadido)
         {
-            // Sonido opcional de recolección
+            // Sonido opcional de recolecciï¿½n
             // if(GestorAudio.Instancia != null && SONIDO_RECOLECCION != null) GestorAudio.Instancia.ReproducirSonido(SONIDO_RECOLECCION);
 
             OcultarInformacion();
