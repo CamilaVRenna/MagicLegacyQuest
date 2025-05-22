@@ -35,4 +35,13 @@ public class InventoryManager : MonoBehaviour
     {
         return items.Contains(item);
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            string contenido = items.Count > 0 ? string.Join(", ", items) : "Inventario vacío";
+            Debug.Log("Inventario actual: " + contenido);
+        }
+    }
 }
