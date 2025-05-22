@@ -271,12 +271,21 @@ public class InteraccionJugador : MonoBehaviour
     {
         if (ingredienteRecolectableMirado != null && ingredienteRecolectableMirado.datosIngrediente != null)
         {
-            // Si el ingrediente es "miel" y tienes "palita" en el inventario, mostrar el log
-            if (ingredienteRecolectableMirado.datosIngrediente.nombreIngrediente == "Miel"
+            if (ingredienteRecolectableMirado.datosIngrediente.nombreIngrediente.ToLower() == "miel"
                 && InventoryManager.Instance != null
                 && InventoryManager.Instance.HasItem("palita"))
             {
-                Debug.Log("abejas saliendo");
+                if (Random.value < 0.5f) // 50% de probabilidad de abejas
+                {
+                    ingredienteRecolectableMirado.IniciarMinijuegoAbejas();
+                    return; // Espera a que termine el minijuego
+                }
+                else
+                {
+                    Debug.Log("No hay abejas");
+                    ingredienteRecolectableMirado.Recolectar();
+                    return;
+                }
             }
         }
 

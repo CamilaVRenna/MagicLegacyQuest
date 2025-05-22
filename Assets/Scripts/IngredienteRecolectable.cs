@@ -10,6 +10,35 @@ public class IngredienteRecolectable : MonoBehaviour
     private GameObject canvasInfoActual = null;
     [HideInInspector] public PuntoSpawnRecoleccion puntoOrigen = null;
 
+    // --- Minijuego de abejas ---
+    private bool minijuegoAbejasActivo = false;
+    private int clicksRestantes = 0;
+
+    public void IniciarMinijuegoAbejas()
+    {
+        minijuegoAbejasActivo = true;
+        clicksRestantes = 5;
+        Debug.Log("¡abejas saliendo! Presiona 'P' 5 veces para recolectar la miel.");
+    }
+
+    void Update()
+    {
+        if (minijuegoAbejasActivo)
+        {
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                clicksRestantes--;
+                Debug.Log($"¡Rápido! Quedan {clicksRestantes} pulsaciones de 'P' para espantar las abejas.");
+                if (clicksRestantes <= 0)
+                {
+                    minijuegoAbejasActivo = false;
+                    Debug.Log("¡Has espantado a las abejas y recolectado la miel!");
+                    Recolectar();
+                }
+            }
+        }
+    }
+
     public void MostrarInformacion()
     {
         if (prefabCanvasInfo == null || datosIngrediente == null) return;
