@@ -29,22 +29,33 @@ public class GestorCompradores : MonoBehaviour
     private NPCComprador npcActualEnVentana = null;
     private float temporizador = 0f;
 
+    private const string PREF_NPCTIENDA_ENTREGADO = "NPCTiendaEntregado";
+
+    // Devuelve true si ya apareció alguna vez
+    private bool NPCTiendaYaEntregado
+    {
+        get => PlayerPrefs.GetInt(PREF_NPCTIENDA_ENTREGADO, 0) == 1;
+        set => PlayerPrefs.SetInt(PREF_NPCTIENDA_ENTREGADO, value ? 1 : 0);
+    }
+
     void Update()
     {
-        // --- NUEVO: Spawnea primero el NPCTienda si no se ha entregado hoy ---
-        if (!npctiendaEntregadoHoy && prefabNPCTienda != null && GestorJuego.Instance != null && GestorJuego.Instance.horaActual != HoraDelDia.Noche)
+        // --- NUEVO: Spawnea NPCTienda solo si NO tienes la palita ---
+        if (!npctiendaEntregadoHoy
+            && prefabNPCTienda != null
+            && GestorJuego.Instance != null
+            && GestorJuego.Instance.horaActual != HoraDelDia.Noche
+            && (InventoryManager.Instance == null || !InventoryManager.Instance.HasItem("palita")))
         {
             GenerarNPCTienda();
             npctiendaEntregadoHoy = true;
-            npctiendaActivo = true; // <-- Marcar como activo
+            npctiendaActivo = true;
             return;
         }
-        // --- FIN NUEVO ---
 
-        // --- NUEVO: Esperar a que el NPCTienda termine antes de spawnear compradores ---
         if (npctiendaActivo)
         {
-            return; // Mientras esté activo, no spawnear compradores normales
+            return;
         }
         // --- FIN NUEVO ---
 
@@ -221,6 +232,7 @@ public class GestorCompradores : MonoBehaviour
     public void NPCTiendaTermino()
     {
         npctiendaActivo = false;
+        NPCTiendaYaEntregado = true; // <-- Marca como entregado para siempre
     }
 
     // --- NUEVO: Funci�n para generar el NPC especial de la tienda ---

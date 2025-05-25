@@ -84,10 +84,8 @@ public class IngredienteRecolectable : MonoBehaviour
 
     public void Recolectar()
     {
-        if (InventoryManager.Instance != null && datosIngrediente != null)
-        {
-            InventoryManager.Instance.AddItem(datosIngrediente.nombreIngrediente);
-        }
+        // Ya NO agregamos nada al inventario aquí
+
         if (datosIngrediente == null) return;
 
         Debug.Log($"Recolectado: {datosIngrediente.nombreIngrediente}");
@@ -105,7 +103,7 @@ public class IngredienteRecolectable : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No se encontr� GestorJuego para a�adir al stock.");
+            Debug.LogError("No se encontró GestorJuego para añadir al stock.");
         }
 
         if (anadido)
