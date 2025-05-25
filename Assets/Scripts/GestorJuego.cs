@@ -1,16 +1,16 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.SceneManagement; // <<--- A�ADE ESTA L�NEA
+using UnityEngine.SceneManagement; 
 using System.Collections.Generic;
 using System.Linq;
 
 public enum HoraDelDia { Manana, Tarde, Noche }
 
-[System.Serializable] // Necesario para que aparezca en el Inspector
+[System.Serializable] 
 public class StockInicialIngrediente
 {
     public DatosIngrediente ingrediente;
-    public int stockInicial = 5; // Stock por defecto
+    public int stockInicial = 5; 
 }
 
 [System.Serializable] // Necesario para que JsonUtility funcione

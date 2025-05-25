@@ -7263,10 +7263,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Jugador
       objectReference: {fileID: 0}
-    - target: {fileID: 2609355420331475959, guid: e34661c19eed7144396cac9aa06e8deb, type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
     - target: {fileID: 4388232212000973846, guid: e34661c19eed7144396cac9aa06e8deb, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.027
@@ -8032,10 +8028,6 @@ PrefabInstance:
       propertyPath: posicionVentana
       value: 
       objectReference: {fileID: 1625792145}
-    - target: {fileID: 5882631450780549520, guid: 9681662fb507b0d499ca9bd0f1b0ee03, type: 3}
-      propertyPath: prefabNPCTienda
-      value: 
-      objectReference: {fileID: 1045434142441624802, guid: 28b1c1c32fc84cf4aba478a39bb145f0, type: 3}
     - target: {fileID: 5882631450780549520, guid: 9681662fb507b0d499ca9bd0f1b0ee03, type: 3}
       propertyPath: puntoMiradaVentana
       value: 
