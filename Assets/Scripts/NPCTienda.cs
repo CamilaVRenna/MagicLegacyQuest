@@ -174,6 +174,10 @@ public class NPCTienda : MonoBehaviour
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.AddItem("palita");
+            // Mostrar mensaje en la interfaz
+            InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
+            if (jugador != null)
+                jugador.MostrarNotificacion("¡Has incorporado una palita para matar abejas!", 3f, false);
         }
         else
         {
@@ -199,6 +203,11 @@ public class NPCTienda : MonoBehaviour
             if (miel != null) GestorJuego.Instance.AnadirStockTienda(miel, 5);
             if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 5);
             if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 5);
+
+            // Mostrar mensaje en la interfaz
+            InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
+            if (jugador != null)
+                jugador.MostrarNotificacion("¡El vendedor te ha dado ingredientes para tus pociones!", 3f, false);
         }
         else
         {

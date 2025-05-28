@@ -18,12 +18,8 @@ public class AbejaMinijuego : MonoBehaviour
     {
         if (objetivo != null)
         {
-            float distancia = Vector3.Distance(transform.position, objetivo.position);
-            if (distancia > distanciaAtaque)
-            {
-                Vector3 dir = (objetivo.position - transform.position).normalized;
-                transform.position += dir * velocidad * Time.deltaTime;
-            }
+            Vector3 dir = (objetivo.position - transform.position).normalized;
+            transform.position += dir * velocidad * Time.deltaTime;
         }
     }
 
