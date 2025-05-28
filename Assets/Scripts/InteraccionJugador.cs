@@ -275,7 +275,7 @@ public class InteraccionJugador : MonoBehaviour
                 && InventoryManager.Instance != null
                 && InventoryManager.Instance.HasItem("palita"))
             {
-                if (Random.value < 0.5f) // 50% de probabilidad de abejas
+                if (Random.value < 0.85f) // 85% de probabilidad de abejas
                 {
                     ingredienteRecolectableMirado.IniciarMinijuegoAbejas();
                     return; // Espera a que termine el minijuego
