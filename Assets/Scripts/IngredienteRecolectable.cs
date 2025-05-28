@@ -10,15 +10,54 @@ public class IngredienteRecolectable : MonoBehaviour
     private GameObject canvasInfoActual = null;
     [HideInInspector] public PuntoSpawnRecoleccion puntoOrigen = null;
 
-    // --- Minijuego de abejas ---
+    // --- NUEVO: Prefab y lógica de abejas ---
+    public GameObject prefabAbeja; // Asigna en el inspector
+    public Transform puntoSalidaAbejas; // Opcional, si quieres controlar el punto de aparición
+
     private bool minijuegoAbejasActivo = false;
-    private int clicksRestantes = 0;
+    private int abejasRestantes = 0;
+    private bool minijuegoTerminado = false; // <-- NUEVO
 
     public void IniciarMinijuegoAbejas()
     {
+        if (prefabAbeja == null)
+        {
+            Debug.LogError("No se asignó el prefab de abeja en IngredienteRecolectable.");
+            return;
+        }
+
         minijuegoAbejasActivo = true;
-        clicksRestantes = 5;
-        Debug.Log("¡abejas saliendo! Presiona 'P' 5 veces para recolectar la miel.");
+        minijuegoTerminado = false; // <-- NUEVO
+        abejasRestantes = 5;
+
+        for (int i = 0; i < 5; i++)
+        {
+            Vector3 spawnPos = (puntoSalidaAbejas != null) ? puntoSalidaAbejas.position : transform.position + Random.insideUnitSphere * 0.5f;
+            GameObject abeja = Instantiate(prefabAbeja, spawnPos, Quaternion.identity);
+            AbejaMinijuego abejaScript = abeja.GetComponent<AbejaMinijuego>();
+            if (abejaScript != null)
+            {
+                abejaScript.SetObjetivoJugador(Camera.main.transform);
+                abejaScript.onAbejaMuerta = OnAbejaMuerta;
+            }
+        }
+
+        Debug.Log("¡Han salido 5 abejas! Mátalas haciendo click para recolectar la miel.");
+    }
+
+    // Callback cuando una abeja muere
+    private void OnAbejaMuerta()
+    {
+        if (minijuegoTerminado) return; // <-- NUEVO
+
+        abejasRestantes--;
+        if (abejasRestantes <= 0)
+        {
+            minijuegoAbejasActivo = false;
+            minijuegoTerminado = true; // <-- NUEVO
+            Debug.Log("¡Has derrotado a todas las abejas y puedes recolectar la miel!");
+            Recolectar();
+        }
     }
 
     void Update()
@@ -27,9 +66,9 @@ public class IngredienteRecolectable : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.P))
             {
-                clicksRestantes--;
-                Debug.Log($"¡Rápido! Quedan {clicksRestantes} pulsaciones de 'P' para espantar las abejas.");
-                if (clicksRestantes <= 0)
+                abejasRestantes--;
+                Debug.Log($"¡Rápido! Quedan {abejasRestantes} pulsaciones de 'P' para espantar las abejas.");
+                if (abejasRestantes <= 0)
                 {
                     minijuegoAbejasActivo = false;
                     Debug.Log("¡Has espantado a las abejas y recolectado la miel!");
