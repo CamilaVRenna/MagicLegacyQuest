@@ -49,6 +49,9 @@ public class InteraccionJugador : MonoBehaviour
     public GestorCompradores gestorNPC;
     public ControladorLibroUI controladorLibroUI;
 
+    public TextMeshProUGUI textoInventario; // Arrástralo desde el inspector
+    private bool inventarioVisible = false;
+
     void Start()
     {
         audioSourceJugador = GetComponent<AudioSource>();
@@ -69,6 +72,27 @@ public class InteraccionJugador : MonoBehaviour
         ManejarNotificaciones();
         if (Input.GetKeyDown(KeyCode.Q) && tipoItemSostenido != TipoItem.Nada) { ReproducirSonidoJugador(sonidoTirarItem); LimpiarItemSostenido(); }
         if (Input.GetMouseButtonDown(1) && tipoItemSostenido == TipoItem.FrascoLleno) MostrarContenidoFrascoLleno();
+
+        // Mostrar/ocultar inventario al apretar I
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            inventarioVisible = !inventarioVisible;
+            if (textoInventario != null)
+            {
+                if (inventarioVisible)
+                {
+                    string contenido = (InventoryManager.Instance != null && InventoryManager.Instance.items.Count > 0)
+                        ? "Inventario:\n- " + string.Join("\n- ", InventoryManager.Instance.items)
+                        : "Inventario vacío";
+                    textoInventario.text = contenido;
+                    textoInventario.gameObject.SetActive(true);
+                }
+                else
+                {
+                    textoInventario.gameObject.SetActive(false);
+                }
+            }
+        }
     }
 
     void ManejarInteraccionMirada()

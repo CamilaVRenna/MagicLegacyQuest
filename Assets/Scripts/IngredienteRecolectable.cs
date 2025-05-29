@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections; // Agrega esto arriba
 
 [RequireComponent(typeof(Collider))]
 public class IngredienteRecolectable : MonoBehaviour
@@ -17,6 +18,10 @@ public class IngredienteRecolectable : MonoBehaviour
     private bool minijuegoAbejasActivo = false;
     private int abejasRestantes = 0;
     private bool minijuegoTerminado = false; // <-- NUEVO
+
+    [SerializeField] public TextMeshProUGUI mensajeTemporalUI; // Asigna en el inspector
+
+    private Coroutine mensajeCoroutine;
 
     public void IniciarMinijuegoAbejas()
     {
@@ -42,7 +47,7 @@ public class IngredienteRecolectable : MonoBehaviour
             }
         }
 
-        Debug.Log("¡Han salido 5 abejas! Mátalas haciendo click para recolectar la miel.");
+        MostrarMensajeTemporal("¡Han salido 5 abejas! Mátalas haciendo click para recolectar la miel.");
     }
 
     // Callback cuando una abeja muere
@@ -55,7 +60,7 @@ public class IngredienteRecolectable : MonoBehaviour
         {
             minijuegoAbejasActivo = false;
             minijuegoTerminado = true; // <-- NUEVO
-            Debug.Log("¡Has derrotado a todas las abejas y puedes recolectar la miel!");
+            MostrarMensajeTemporal("¡Has derrotado a todas las abejas y puedes recolectar la miel!");
             Recolectar();
         }
     }
@@ -149,6 +154,25 @@ public class IngredienteRecolectable : MonoBehaviour
         {
             OcultarInformacion();
             Destroy(gameObject);
+        }
+    }
+
+    // Llama a esto en vez de Debug.Log
+    private void MostrarMensajeTemporal(string mensaje, float duracion = 2f)
+    {
+        if (mensajeCoroutine != null)
+            StopCoroutine(mensajeCoroutine);
+        mensajeCoroutine = StartCoroutine(MostrarMensajeCoroutine(mensaje, duracion));
+    }
+
+    private IEnumerator MostrarMensajeCoroutine(string mensaje, float duracion)
+    {
+        if (mensajeTemporalUI != null)
+        {
+            mensajeTemporalUI.text = mensaje;
+            mensajeTemporalUI.gameObject.SetActive(true);
+            yield return new WaitForSeconds(duracion);
+            mensajeTemporalUI.gameObject.SetActive(false);
         }
     }
 }
