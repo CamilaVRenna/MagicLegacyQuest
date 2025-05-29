@@ -1,29 +1,94 @@
 using UnityEngine;
 using TMPro;
+using System.Collections; // Agrega esto arriba
 
-// Asegura que tenga un collider para ser detectado
 [RequireComponent(typeof(Collider))]
 public class IngredienteRecolectable : MonoBehaviour
 {
-    [Tooltip("Asigna aquí el ScriptableObject del ingrediente que este objeto representa.")]
-    public DatosIngrediente datosIngrediente; // <<--- ASIGNAR EN EL PREFAB
-
-    [Header("Interacción y UI")]
+    public DatosIngrediente datosIngrediente;
     public string textoIndicador = "Recolectar [E]";
-    [Tooltip("Arrastra el prefab InfoCanvas.")]
-    public GameObject prefabCanvasInfo; // <<--- ASIGNAR EN EL PREFAB
+    public GameObject prefabCanvasInfo;
     private GameObject canvasInfoActual = null;
-
-    // Referencia al punto de spawn (lo asigna el GestorRecoleccionBosque al crearlo)
     [HideInInspector] public PuntoSpawnRecoleccion puntoOrigen = null;
 
-    // --- Métodos para Mostrar/Ocultar Indicador ---
+    // --- NUEVO: Prefab y lÃ³gica de abejas ---
+    public GameObject prefabAbeja; // Asigna en el inspector
+    public Transform puntoSalidaAbejas; // Opcional, si quieres controlar el punto de apariciÃ³n
+
+    private bool minijuegoAbejasActivo = false;
+    private int abejasRestantes = 0;
+    private bool minijuegoTerminado = false; // <-- NUEVO
+
+    [SerializeField] public TextMeshProUGUI mensajeTemporalUI; // Asigna en el inspector
+
+    private Coroutine mensajeCoroutine;
+
+    public void IniciarMinijuegoAbejas()
+    {
+        if (prefabAbeja == null)
+        {
+            Debug.LogError("No se asignÃ³ el prefab de abeja en IngredienteRecolectable.");
+            return;
+        }
+
+        minijuegoAbejasActivo = true;
+        minijuegoTerminado = false; // <-- NUEVO
+        abejasRestantes = 5;
+
+        for (int i = 0; i < 5; i++)
+        {
+            Vector3 spawnPos = (puntoSalidaAbejas != null) ? puntoSalidaAbejas.position : transform.position + Random.insideUnitSphere * 0.5f;
+            GameObject abeja = Instantiate(prefabAbeja, spawnPos, Quaternion.identity);
+            AbejaMinijuego abejaScript = abeja.GetComponent<AbejaMinijuego>();
+            if (abejaScript != null)
+            {
+                abejaScript.SetObjetivoJugador(Camera.main.transform);
+                abejaScript.onAbejaMuerta = OnAbejaMuerta;
+            }
+        }
+
+        MostrarMensajeTemporal("Â¡Han salido 5 abejas! MÃ¡talas haciendo click para recolectar la miel.");
+    }
+
+    // Callback cuando una abeja muere
+    private void OnAbejaMuerta()
+    {
+        if (minijuegoTerminado) return; // <-- NUEVO
+
+        abejasRestantes--;
+        if (abejasRestantes <= 0)
+        {
+            minijuegoAbejasActivo = false;
+            minijuegoTerminado = true; // <-- NUEVO
+            MostrarMensajeTemporal("Â¡Has derrotado a todas las abejas y puedes recolectar la miel!");
+            Recolectar();
+        }
+    }
+
+    void Update()
+    {
+        if (minijuegoAbejasActivo)
+        {
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                abejasRestantes--;
+                Debug.Log($"Â¡RÃ¡pido! Quedan {abejasRestantes} pulsaciones de 'P' para espantar las abejas.");
+                if (abejasRestantes <= 0)
+                {
+                    minijuegoAbejasActivo = false;
+                    Debug.Log("Â¡Has espantado a las abejas y recolectado la miel!");
+                    Recolectar();
+                }
+            }
+        }
+    }
+
     public void MostrarInformacion()
     {
         if (prefabCanvasInfo == null || datosIngrediente == null) return;
         if (canvasInfoActual == null)
         {
-            Vector3 offset = Vector3.up * 0.5f; // Ajustar altura
+            Vector3 offset = Vector3.up * 0.5f;
             Collider col = GetComponent<Collider>();
             Vector3 basePos = (col != null) ? col.bounds.center : transform.position;
             canvasInfoActual = Instantiate(prefabCanvasInfo, basePos + offset, Quaternion.identity);
@@ -36,45 +101,78 @@ public class IngredienteRecolectable : MonoBehaviour
                 if (uiScript.textoNombre != null) uiScript.textoNombre.text = $"{datosIngrediente.nombreIngrediente}\n[{textoIndicador}]";
                 if (uiScript.textoCantidad != null) uiScript.textoCantidad.gameObject.SetActive(false);
             }
-            else { TextMeshProUGUI tmp = canvasInfoActual.GetComponentInChildren<TextMeshProUGUI>(); if (tmp != null) tmp.text = $"{datosIngrediente.nombreIngrediente}\n[{textoIndicador}]"; }
+            else
+            {
+                TextMeshProUGUI tmp = canvasInfoActual.GetComponentInChildren<TextMeshProUGUI>();
+                if (tmp != null) tmp.text = $"{datosIngrediente.nombreIngrediente}\n[{textoIndicador}]";
+            }
             canvasInfoActual.SetActive(true);
         }
     }
-    public void OcultarInformacion() { if (canvasInfoActual != null) { canvasInfoActual.SetActive(false); } }
-    void OnDestroy() { if (canvasInfoActual != null) { Destroy(canvasInfoActual); } }
-    // --- Fin Métodos Indicador ---
 
+    public void OcultarInformacion()
+    {
+        if (canvasInfoActual != null)
+        {
+            canvasInfoActual.SetActive(false);
+        }
+    }
 
-    // --- Método llamado por InteraccionJugador al presionar E ---
+    void OnDestroy()
+    {
+        if (canvasInfoActual != null)
+        {
+            Destroy(canvasInfoActual);
+        }
+    }
+
     public void Recolectar()
     {
+        // Ya NO agregamos nada al inventario aquÃ­
+
         if (datosIngrediente == null) return;
 
         Debug.Log($"Recolectado: {datosIngrediente.nombreIngrediente}");
         bool anadido = false;
         if (GestorJuego.Instance != null)
         {
-            // Añadir al stock global
-            GestorJuego.Instance.AnadirStockTienda(datosIngrediente, 1); // Añade 1
+            GestorJuego.Instance.AnadirStockTienda(datosIngrediente, 1);
             anadido = true;
 
-            // Marcar el punto de origen como recolectado hoy
             if (puntoOrigen != null)
             {
                 puntoOrigen.diaUltimaRecoleccion = GestorJuego.Instance.diaActual;
-                puntoOrigen.objetoInstanciadoActual = null; // El punto queda libre
+                puntoOrigen.objetoInstanciadoActual = null;
             }
         }
-        else { Debug.LogError("No se encontró GestorJuego para añadir al stock."); }
+        else
+        {
+            Debug.LogError("No se encontrÃ³ GestorJuego para aÃ±adir al stock.");
+        }
 
-        // Destruir el objeto SOLO si se pudo añadir al stock
         if (anadido)
         {
-            // Sonido opcional de recolección
-            // if(GestorAudio.Instancia != null && SONIDO_RECOLECCION != null) GestorAudio.Instancia.ReproducirSonido(SONIDO_RECOLECCION);
-
             OcultarInformacion();
             Destroy(gameObject);
+        }
+    }
+
+    // Llama a esto en vez de Debug.Log
+    private void MostrarMensajeTemporal(string mensaje, float duracion = 2f)
+    {
+        if (mensajeCoroutine != null)
+            StopCoroutine(mensajeCoroutine);
+        mensajeCoroutine = StartCoroutine(MostrarMensajeCoroutine(mensaje, duracion));
+    }
+
+    private IEnumerator MostrarMensajeCoroutine(string mensaje, float duracion)
+    {
+        if (mensajeTemporalUI != null)
+        {
+            mensajeTemporalUI.text = mensaje;
+            mensajeTemporalUI.gameObject.SetActive(true);
+            yield return new WaitForSeconds(duracion);
+            mensajeTemporalUI.gameObject.SetActive(false);
         }
     }
 }

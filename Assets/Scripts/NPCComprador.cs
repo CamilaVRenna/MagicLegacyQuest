@@ -216,10 +216,6 @@ public class NPCComprador : MonoBehaviour
             {
                 tiempoRestanteEspera -= Time.deltaTime;
 
-                // --- LOG DE TIEMPO RESTANTE ---
-                Debug.Log($"NPC Esperando. Tiempo restante: {tiempoRestanteEspera:F2}");
-                // ----------------------------
-
                 ActualizarUITemporizador();
                 if (tiempoRestanteEspera <= 0) { TiempoAgotado(); }
             }
