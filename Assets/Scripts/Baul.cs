@@ -82,4 +82,38 @@ public class Baul : MonoBehaviour
             }
         }
     }
+
+    [System.Serializable]
+    public class BaulData
+    {
+        public List<string> objetos = new List<string>();
+    }
+
+    private void OnDestroy()
+    {
+        GuardarBaul();
+    }
+
+    public void GuardarBaul()
+    {
+        BaulData data = new BaulData { objetos = new List<string>(objetosBaul) };
+        string json = JsonUtility.ToJson(data);
+        PlayerPrefs.SetString("BaulContenido", json);
+        PlayerPrefs.Save();
+    }
+
+    public void CargarBaul()
+    {
+        if (PlayerPrefs.HasKey("BaulContenido"))
+        {
+            string json = PlayerPrefs.GetString("BaulContenido");
+            BaulData data = JsonUtility.FromJson<BaulData>(json);
+            objetosBaul = data.objetos ?? new List<string>();
+        }
+    }
+
+    private void Start()
+    {
+        CargarBaul();
+    }
 }
