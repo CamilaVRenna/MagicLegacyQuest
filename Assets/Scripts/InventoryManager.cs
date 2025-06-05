@@ -6,29 +6,31 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance { get; private set; }
 
     public List<string> items = new List<string>();
+    private int selectedIndex = -1;
+    private bool inventarioAbierto = false; // NUEVO
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // Si ya existe, elimina el duplicado
+            Destroy(gameObject);
             return;
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // Persiste entre escenas
+        DontDestroyOnLoad(gameObject);
     }
 
     public void AddItem(string item)
     {
         items.Add(item);
-        Debug.Log("Agregado al inventario: " + item);
+        UIMessageManager.Instance?.MostrarMensaje("Agregado al inventario: " + item);
     }
 
     public void RemoveItem(string item)
     {
         items.Remove(item);
-        Debug.Log("Eliminado del inventario: " + item);
+        UIMessageManager.Instance?.MostrarMensaje("Eliminado del inventario: " + item);
     }
 
     public bool HasItem(string item)
@@ -40,8 +42,70 @@ public class InventoryManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.I))
         {
-            string contenido = items.Count > 0 ? string.Join(", ", items) : "Inventario vacío";
-            Debug.Log("Inventario actual: " + contenido);
+            inventarioAbierto = !inventarioAbierto; // Alterna abierto/cerrado
+            if (inventarioAbierto)
+            {
+                string lista = "Q para soltar item actual\nT para tirar item actual\n";
+                if (items.Count == 0)
+                {
+                    lista += "Inventario vacío";
+                }
+                else
+                {
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        string itemStr = $"{i + 1}. {items[i]}";
+                        if (i == selectedIndex) itemStr += " *";
+                        lista += itemStr + "\n";
+                    }
+                }
+                UIMessageManager.Instance?.MostrarMensaje(lista);
+            }
+            else
+            {
+                UIMessageManager.Instance?.MostrarMensaje(""); // Limpia mensaje al cerrar
+            }
+        }
+
+        // Solo permite seleccionar si el inventario está abierto
+        if (inventarioAbierto)
+        {
+            for (int i = 0; i < Mathf.Min(items.Count, 9); i++)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                {
+                    selectedIndex = i;
+                    UIMessageManager.Instance?.MostrarMensaje($"Seleccionaste: {items[selectedIndex]}");
+                }
+            }
+
+            // Soltar item actual con Q (lo pasa al baúl y lo elimina del inventario)
+            if (Input.GetKeyDown(KeyCode.Q) && selectedIndex >= 0 && selectedIndex < items.Count)
+            {
+                string item = items[selectedIndex];
+                Baul baul = FindObjectOfType<Baul>();
+                if (baul != null)
+                {
+                    baul.AgregarAlBaul(item);
+                    UIMessageManager.Instance?.MostrarMensaje($"Soltaste el elemento \"{item}\" y lo guardaste en el baúl");
+                }
+                else
+                {
+                    Debug.LogWarning("No se encontró el baúl en la escena.");
+                }
+                items.RemoveAt(selectedIndex);
+                if (items.Count == 0)
+                    selectedIndex = -1;
+                else if (selectedIndex >= items.Count)
+                    selectedIndex = items.Count - 1;
+            }
+
+            // Tirar item actual con T (solo deselecciona, NO elimina)
+            if (Input.GetKeyDown(KeyCode.T) && selectedIndex >= 0 && selectedIndex < items.Count)
+            {
+                UIMessageManager.Instance?.MostrarMensaje("Deseleccionaste el item actual.");
+                selectedIndex = -1;
+            }
         }
     }
 }
