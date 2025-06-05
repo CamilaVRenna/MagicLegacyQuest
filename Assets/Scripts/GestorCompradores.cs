@@ -40,27 +40,9 @@ public class GestorCompradores : MonoBehaviour
 
     void Update()
     {
-        // --- NUEVO: Spawnea NPCTienda solo si NO tienes la palita ---
-        if (!npctiendaEntregadoHoy
-            && prefabNPCTienda != null
-            && GestorJuego.Instance != null
-            && GestorJuego.Instance.horaActual != HoraDelDia.Noche
-            && (InventoryManager.Instance == null || !InventoryManager.Instance.HasItem("palita")))
-        {
-            GenerarNPCTienda();
-            npctiendaEntregadoHoy = true;
-            npctiendaActivo = true;
-            return;
-        }
-
-        if (npctiendaActivo)
-        {
-            return;
-        }
-        // --- FIN NUEVO ---
+        if (!tiendaAbierta || !compradoresHabilitados) return; // <--- Cambiado
 
         temporizador += Time.deltaTime;
-
         if (temporizador >= intervaloAparicion && PuedeGenerarMasNPCs()) 
         {
             temporizador = 0f;
@@ -232,11 +214,12 @@ public class GestorCompradores : MonoBehaviour
     public void NPCTiendaTermino()
     {
         npctiendaActivo = false;
-        NPCTiendaYaEntregado = true; // <-- Marca como entregado para siempre
+        NPCTiendaYaEntregado = true;
+        compradoresHabilitados = true; // <--- Habilita compradores recién ahora
     }
 
     // --- NUEVO: Funci�n para generar el NPC especial de la tienda ---
-    private void GenerarNPCTienda()
+    public void GenerarNPCTienda()
     {
         if (puntoAparicion == null || posicionVentana == null || puntoSalidaNPC == null)
         {
@@ -259,4 +242,10 @@ public class GestorCompradores : MonoBehaviour
         }
     }
     // --- FIN NUEVO ---
+
+    [HideInInspector]
+    public bool tiendaAbierta = false;
+
+    [HideInInspector]
+    public bool compradoresHabilitados = false;
 }

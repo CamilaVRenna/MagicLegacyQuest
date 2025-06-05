@@ -43,6 +43,7 @@ public class InteraccionJugador : MonoBehaviour
     private PuertaCambioEscena puertaMiradaActual = null;
     private CamaInteractuable camaMiradaActual = null;
     private IngredienteRecolectable ingredienteRecolectableMirado = null;
+    private GameObject cartelMiradoActual = null; // NUEVO
 
     public CatalogoRecetas catalogoRecetas;
     public Material materialPocionDesconocida;
@@ -51,6 +52,9 @@ public class InteraccionJugador : MonoBehaviour
 
     public TextMeshProUGUI textoInventario; // Arrástralo desde el inspector
     private bool inventarioVisible = false;
+
+    private bool tiendaAbierta = false;
+    private bool esperandoConfirmacionCerrarTienda = false;
 
     void Start()
     {
@@ -73,26 +77,6 @@ public class InteraccionJugador : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q) && tipoItemSostenido != TipoItem.Nada) { ReproducirSonidoJugador(sonidoTirarItem); LimpiarItemSostenido(); }
         if (Input.GetMouseButtonDown(1) && tipoItemSostenido == TipoItem.FrascoLleno) MostrarContenidoFrascoLleno();
 
-        // Mostrar/ocultar inventario al apretar I
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            inventarioVisible = !inventarioVisible;
-            if (textoInventario != null)
-            {
-                if (inventarioVisible)
-                {
-                    string contenido = (InventoryManager.Instance != null && InventoryManager.Instance.items.Count > 0)
-                        ? "Inventario:\n- " + string.Join("\n- ", InventoryManager.Instance.items)
-                        : "Inventario vacío";
-                    textoInventario.text = contenido;
-                    textoInventario.gameObject.SetActive(true);
-                }
-                else
-                {
-                    textoInventario.gameObject.SetActive(false);
-                }
-            }
-        }
     }
 
     void ManejarInteraccionMirada()
@@ -128,6 +112,7 @@ public class InteraccionJugador : MonoBehaviour
         {
             puertaMiradaActual.OcultarInformacion();
             puertaMiradaActual = null;
+            esperandoConfirmacionCerrarTienda = false; // Resetea confirmación si deja de mirar la puerta
         }
         if (camaMiradaActual != null && (!golpeoAlgo || objetoGolpeado != camaMiradaActual.gameObject))
         {
@@ -139,6 +124,10 @@ public class InteraccionJugador : MonoBehaviour
             ingredienteRecolectableMirado.OcultarInformacion();
             ingredienteRecolectableMirado = null;
         }
+        if (cartelMiradoActual != null && (!golpeoAlgo || objetoGolpeado != cartelMiradoActual)) // NUEVO
+        {
+            cartelMiradoActual = null;
+        } // NUEVO
 
         if (golpeoAlgo)
         {
@@ -166,6 +155,7 @@ public class InteraccionJugador : MonoBehaviour
                     ingredienteRecolectableMirado = ingRecCtrl;
                     ingredienteRecolectableMirado.MostrarInformacion();
                 }
+                if (objetoGolpeado.name == "cartel") { cartelMiradoActual = objetoGolpeado; return; }
             }
         }
     }
@@ -181,6 +171,7 @@ public class InteraccionJugador : MonoBehaviour
         else if (puertaMiradaActual != null) InteractuarConPuerta();
         else if (camaMiradaActual != null) InteractuarConCama();
         else if (ingredienteRecolectableMirado != null) InteractuarConIngredienteRecolectable();
+        else if (cartelMiradoActual != null) InteractuarConCartel(); // NUEVO
     }
 
     void InteractuarConFuenteIngredientes()
@@ -267,17 +258,37 @@ public class InteraccionJugador : MonoBehaviour
 
     void InteractuarConPuerta()
     {
-        if (GestorJuego.Instance != null)
+        if (!esperandoConfirmacionCerrarTienda)
         {
-            if (GestorJuego.Instance.horaActual != HoraDelDia.Noche)
-                puertaMiradaActual.CambiarEscena();
-            else
-                MostrarNotificacion("Será mejor que no salga ahora, podría encontrarme con un troll...", 3f, false);
+            UIMessageManager.Instance?.MostrarMensaje("¿Seguro que quieres salir de la tienda? Pulsa E para confirmar.");
+            esperandoConfirmacionCerrarTienda = true;
         }
         else
         {
-            Debug.LogError("No se encontró GestorJuego al interactuar con la puerta.");
-            MostrarNotificacion("Error del sistema de tiempo.", 2f, true);
+            esperandoConfirmacionCerrarTienda = false;
+            UIMessageManager.Instance?.MostrarMensaje("Saliendo de la tienda...");
+
+            // Desactivar el cartel hasta el próximo día
+            GameObject cartel = GameObject.Find("cartel");
+            if (cartel != null)
+                cartel.SetActive(false);
+
+            // Hacer de noche y bloquear la tienda
+            if (GestorJuego.Instance != null)
+            {
+                GestorJuego.Instance.horaActual = HoraDelDia.Noche;
+                if (GestorJuego.Instance.gestorNPCs != null)
+                {
+                    GestorJuego.Instance.gestorNPCs.tiendaAbierta = false;
+                    GestorJuego.Instance.gestorNPCs.compradoresHabilitados = false;
+                }
+            }
+
+            // Cambiar de escena usando la puerta
+            if (puertaMiradaActual != null)
+            {
+                puertaMiradaActual.CambiarEscena();
+            }
         }
     }
 
@@ -319,6 +330,41 @@ public class InteraccionJugador : MonoBehaviour
         }
         else MostrarNotificacion("Tienes las manos llenas para recolectar.", 2f, true);
     }
+
+    void InteractuarConCartel() // NUEVO
+    {
+        if (GestorJuego.Instance != null && GestorJuego.Instance.horaActual == HoraDelDia.Noche)
+        {
+            UIMessageManager.Instance?.MostrarMensaje("La tienda ya está cerrada por hoy. Vuelve mañana.");
+            return;
+        }
+
+        if (!tiendaAbierta)
+        {
+            tiendaAbierta = true;
+            if (GestorJuego.Instance != null && GestorJuego.Instance.gestorNPCs != null)
+            {
+                var gestorNPCs = GestorJuego.Instance.gestorNPCs;
+                gestorNPCs.tiendaAbierta = true;
+
+                // Si NO se genera el NPC Tienda porque ya tenés la palita, habilitá compradores directamente
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasItem("palita"))
+                {
+                    gestorNPCs.compradoresHabilitados = true;
+                }
+                else
+                {
+                    gestorNPCs.compradoresHabilitados = false;
+                    gestorNPCs.GenerarNPCTienda();
+                }
+            }
+            UIMessageManager.Instance?.MostrarMensaje("¡Tienda abierta! El día comienza...");
+        }
+        else
+        {
+            UIMessageManager.Instance?.MostrarMensaje("La tienda ya está abierta.");
+        }
+    } // NUEVO
 
     void EstablecerItemSostenido(ScriptableObject itemData, TipoItem tipo)
     {
