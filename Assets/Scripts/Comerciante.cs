@@ -23,9 +23,11 @@ public class Comerciante : MonoBehaviour
         textoInteractuar.SetActive(!tiendaAbierta);
         
         // Opcional: detener movimiento del jugador mientras está en la tienda
+        
+        Time.timeScale = tiendaAbierta ? 0f : 1f; // Pausar juego si querés
+        Debug.Log("Tienda abierta: " + tiendaAbierta);
         Cursor.lockState = tiendaAbierta ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = tiendaAbierta;
-        Time.timeScale = tiendaAbierta ? 0f : 1f; // Pausar juego si querés
     }
 
     void OnTriggerEnter(Collider otro)
@@ -49,4 +51,9 @@ public class Comerciante : MonoBehaviour
                 AlternarTienda(); // Cierra la tienda si te alejás
         }
     }
+    public void ComprarItem(string nombreItem)
+{
+    InventoryManager.Instance?.AddItem(nombreItem);
+    UIMessageManager.Instance?.MostrarMensaje("¡Compraste: " + nombreItem + "!");
+}
 }

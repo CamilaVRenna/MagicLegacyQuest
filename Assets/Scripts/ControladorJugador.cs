@@ -22,22 +22,22 @@ public class ControladorJugador : MonoBehaviour
     public float posCamaraAgachadoY = 0.4f;
     private bool estaAgachado = false;
 
-    [Header("Ajustes de Vista (Cámara)")]
+    [Header("Ajustes de Vista (Cï¿½mara)")]
     public Camera camaraJugador;
     public float velocidadMirar = 2.0f;
     public float limiteMirarX = 80.0f;
 
-    [Header("Campo de Visión (FOV)")]
+    [Header("Campo de Visiï¿½n (FOV)")]
     [Range(40f, 100f)]
     public float campoDeVision = 60f;
 
     // Referencias y estado interno
     private CharacterController controladorPersonaje;
-    private float rotacionX = 0; // Acumulador para rotación vertical de la cámara
+    private float rotacionX = 0; // Acumulador para rotaciï¿½n vertical de la cï¿½mara
     private float rotacionYInicial = 0f; // Puedes quitar esta si no la usas
     private bool puedeMoverse = true;
 
-    // --- Variables para Guardar/Restaurar Rotación --- // <<--- AÑADIDO
+    // --- Variables para Guardar/Restaurar Rotaciï¿½n --- // <<--- Aï¿½ADIDO
     private Quaternion rotacionCuerpoAlmacenada;
     private Quaternion rotacionCamaraAlmacenada;
     // -------------------------------------------------
@@ -45,8 +45,8 @@ public class ControladorJugador : MonoBehaviour
     void Start()
     {
         controladorPersonaje = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        //Cursor.lockState = CursorLockMode.Locked;
+        //Cursor.visible = false;
         AplicarCampoVision();
 
         velocidadVertical = 0f;
@@ -68,17 +68,17 @@ public class ControladorJugador : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            // Llamar a los métodos de movimiento y cámara
+            // Llamar a los mï¿½todos de movimiento y cï¿½mara
             ManejarMovimiento();
             ManejarVistaCamara();
         }*/
         if (puedeMoverse)
         {
             // Bloquear y ocultar cursor
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
 
-            // Llamar a los métodos de movimiento y cámara
+            // Llamar a los mï¿½todos de movimiento y cï¿½mara
             ManejarMovimiento();
             ManejarVistaCamara();
         }
@@ -142,14 +142,14 @@ public class ControladorJugador : MonoBehaviour
     void ManejarVistaCamara()
     {
         if (puedeMoverse)
-        { // Solo procesa input del ratón si el jugador puede moverse
+        { // Solo procesa input del ratï¿½n si el jugador puede moverse
             rotacionX += -Input.GetAxis("Mouse Y") * velocidadMirar;
             rotacionX = Mathf.Clamp(rotacionX, -limiteMirarX, limiteMirarX);
             camaraJugador.transform.localRotation = Quaternion.Euler(rotacionX, 0, 0);
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * velocidadMirar, 0);
         }
-        // Si !puedeMoverse, la cámara no se actualiza con el input del ratón,
-        // pero mantiene la rotación que tenía o la que se le restaure.
+        // Si !puedeMoverse, la cï¿½mara no se actualiza con el input del ratï¿½n,
+        // pero mantiene la rotaciï¿½n que tenï¿½a o la que se le restaure.
     }
 
     void AplicarCampoVision()
@@ -160,44 +160,44 @@ public class ControladorJugador : MonoBehaviour
     public void HabilitarMovimiento(bool habilitar)
     {
         puedeMoverse = habilitar;
-        // La gestión del cursor ahora se hace principalmente en Caldero.cs
+        // La gestiï¿½n del cursor ahora se hace principalmente en Caldero.cs
         // al iniciar y finalizar el minijuego.
     }
 
-    // --- NUEVAS FUNCIONES para Guardar/Restaurar Rotación --- // <<--- AÑADIDO
+    // --- NUEVAS FUNCIONES para Guardar/Restaurar Rotaciï¿½n --- // <<--- Aï¿½ADIDO
     public void AlmacenarRotacionActual()
     {
-        rotacionCuerpoAlmacenada = transform.rotation; // Guarda rotación global del jugador
+        rotacionCuerpoAlmacenada = transform.rotation; // Guarda rotaciï¿½n global del jugador
         if (camaraJugador != null)
         {
-            rotacionCamaraAlmacenada = camaraJugador.transform.localRotation; // Guarda rotación local de la cámara
-            // Guarda también el ángulo X acumulado actual para la vista vertical
+            rotacionCamaraAlmacenada = camaraJugador.transform.localRotation; // Guarda rotaciï¿½n local de la cï¿½mara
+            // Guarda tambiï¿½n el ï¿½ngulo X acumulado actual para la vista vertical
             rotacionX = camaraJugador.transform.localEulerAngles.x;
-            // Ajustar si el ángulo Euler es > 180 (Unity a veces devuelve esto para negativos)
+            // Ajustar si el ï¿½ngulo Euler es > 180 (Unity a veces devuelve esto para negativos)
             if (rotacionX > 180f) rotacionX -= 360f;
         }
-        Debug.Log("Rotación Almacenada"); // Para confirmar que se llama
+        Debug.Log("Rotaciï¿½n Almacenada"); // Para confirmar que se llama
     }
 
     public void RestaurarRotacionAlmacenada()
     {
-        transform.rotation = rotacionCuerpoAlmacenada; // Restaura rotación global del jugador
+        transform.rotation = rotacionCuerpoAlmacenada; // Restaura rotaciï¿½n global del jugador
         if (camaraJugador != null)
         {
-            camaraJugador.transform.localRotation = rotacionCamaraAlmacenada; // Restaura rotación local de la cámara
-            // Re-asignar rotacionX asegura que la próxima entrada del ratón continúe desde aquí
-            // (El valor ya se ajustó en AlmacenarRotacionActual)
+            camaraJugador.transform.localRotation = rotacionCamaraAlmacenada; // Restaura rotaciï¿½n local de la cï¿½mara
+            // Re-asignar rotacionX asegura que la prï¿½xima entrada del ratï¿½n continï¿½e desde aquï¿½
+            // (El valor ya se ajustï¿½ en AlmacenarRotacionActual)
         }
-        Debug.Log("Rotación Restaurada"); // Para confirmar que se llama
+        Debug.Log("Rotaciï¿½n Restaurada"); // Para confirmar que se llama
     }
     // --- FIN NUEVAS FUNCIONES ---
 
     public void ResetearVistaVertical()
     {
-        rotacionX = 0f; // Poner ángulo vertical a 0
+        rotacionX = 0f; // Poner ï¿½ngulo vertical a 0
         if (camaraJugador != null)
         {
-            camaraJugador.transform.localRotation = Quaternion.Euler(rotacionX, 0f, 0f); // Aplicar rotación X=0
+            camaraJugador.transform.localRotation = Quaternion.Euler(rotacionX, 0f, 0f); // Aplicar rotaciï¿½n X=0
         }
     }
 
