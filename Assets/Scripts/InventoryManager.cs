@@ -65,7 +65,7 @@ public class InventoryManager : MonoBehaviour
                 string lista = "Q para soltar item actual\nT para tirar item actual\n";
                 if (items.Count == 0)
                 {
-                    lista += "Inventario vacío";
+                  //      lista += "Inventario vacío";
                 }
                 else
                 {
