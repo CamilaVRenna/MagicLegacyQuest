@@ -9,6 +9,7 @@ public class Comerciante : MonoBehaviour
     private bool tiendaAbierta = false;
     public GameObject prefabBotonItem; // Prefab del botón con el script BotonItemTienda
 public Transform contenedorBotones; // Dónde se instancian los botones en la UI
+public GestorUI gestorUI; // Asignalo en el Inspector
 
     void Update()
     {
@@ -55,16 +56,25 @@ public Transform contenedorBotones; // Dónde se instancian los botones en la UI
                 AlternarTienda(); // Cierra la tienda si te alejás
         }
     }
-    public void ComprarItem(string nombreItem)
+
+    public void ComprarItem(string nombreItem, int precio)
 {
-    InventoryManager.Instance?.AddItem(nombreItem);
-    UIMessageManager.Instance?.MostrarMensaje("¡Compraste: " + nombreItem + "!");
+    if (gestorUI.IntentarGastarDinero(precio))
+    {
+        InventoryManager.Instance?.AddItem(nombreItem);
+        UIMessageManager.Instance?.MostrarMensaje("¡Compraste: " + nombreItem + "!");
+    }
+    else
+    {
+        UIMessageManager.Instance?.MostrarMensaje("No tienes suficiente dinero para " + nombreItem + ".");
+    }
 }
+
 void GenerarBotones()
 {
     // Lista hardcodeada, podés reemplazarla luego por datos reales
-    string[] nombres = { "Espada", "Poción", "Escudo" };
-    int[] precios = { 100, 50, 150 };
+    string[] nombres = { "Frasco    ", "Palita", "Hueso" };
+    int[] precios = { 10, 5, 15 };
 
     for (int i = 0; i < nombres.Length; i++)
     {

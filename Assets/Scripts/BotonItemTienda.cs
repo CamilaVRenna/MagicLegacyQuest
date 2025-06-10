@@ -22,9 +22,8 @@ public class BotonItemTienda : MonoBehaviour
         GetComponent<Button>().onClick.AddListener(Comprar);
     }
 
-    void Comprar()
-    {
-        // Si querés validar el dinero, integrá tu sistema aquí
-        comerciante.ComprarItem(nombreItem);
-    }
+   void Comprar()
+{
+    comerciante.ComprarItem(nombreItem, precioItem);
+}
 }
