@@ -5,10 +5,9 @@ using System.Linq;
 [CreateAssetMenu(fileName = "CatalogoDeRecetas", menuName = "Pociones/Catalogo de Recetas")]
 public class CatalogoRecetas : ScriptableObject
 {
-    [Tooltip("Arrastra aquí TODOS los assets de RecetaResultado (PedidoPocionData modificados) que definen pociones crafteables.")]
-    public List<PedidoPocionData> todasLasRecetas; // Usamos PedidoPocionData aquí
+    [Tooltip("Arrastra aquï¿½ TODOS los assets de RecetaResultado (PedidoPocionData modificados) que definen pociones crafteables.")]
+    public List<PedidoPocionData> todasLasRecetas; // Usamos PedidoPocionData aquï¿½
 
-    // Busca una receta que coincida con los ingredientes
     public PedidoPocionData BuscarRecetaPorIngredientes(List<DatosIngrediente> ingredientesPocion)
     {
         if (todasLasRecetas == null || ingredientesPocion == null) return null;
@@ -17,13 +16,12 @@ public class CatalogoRecetas : ScriptableObject
         {
             if (CompararListasIngredientes(receta.ingredientesRequeridos, ingredientesPocion))
             {
-                return receta; // ¡Encontrada!
+                return receta; // ï¿½Encontrada!
             }
         }
         return null; // No encontrada
     }
 
-    // Función de comparación (la misma de antes)
     private bool CompararListasIngredientes(List<DatosIngrediente> lista1, List<DatosIngrediente> lista2)
     {
         if (lista1 == null || lista2 == null || lista1.Count != lista2.Count) return false;
