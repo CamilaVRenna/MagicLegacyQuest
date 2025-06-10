@@ -1,13 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+using TMPro;
+using UnityEngine.UI;
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
 
     public List<string> items = new List<string>();
+
     private int selectedIndex = -1;
     private bool inventarioAbierto = false; // NUEVO
+
+    [Header("UI")]
+    public GameObject panelInventario;
+    public Transform contenidoInventario; // Donde se generan los botones
+    public GameObject prefabBotonItem;
 
     private void Awake()
     {
@@ -24,12 +31,15 @@ public class InventoryManager : MonoBehaviour
     public void AddItem(string item)
     {
         items.Add(item);
+        ActualizarUIInventario();
         UIMessageManager.Instance?.MostrarMensaje("Agregado al inventario: " + item);
     }
 
     public void RemoveItem(string item)
     {
         items.Remove(item);
+                ActualizarUIInventario();
+
         UIMessageManager.Instance?.MostrarMensaje("Eliminado del inventario: " + item);
     }
 
@@ -43,12 +53,19 @@ public class InventoryManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.I))
         {
             inventarioAbierto = !inventarioAbierto; // Alterna abierto/cerrado
+            bool activo = !panelInventario.activeSelf;
+             panelInventario.SetActive(activo);
+            Cursor.lockState = activo ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = activo;
+            if (activo){
+                ActualizarUIInventario();
+            }
             if (inventarioAbierto)
             {
                 string lista = "Q para soltar item actual\nT para tirar item actual\n";
                 if (items.Count == 0)
                 {
-                    lista += "Inventario vacío";
+                  //      lista += "Inventario vacío";
                 }
                 else
                 {
@@ -106,6 +123,25 @@ public class InventoryManager : MonoBehaviour
                 UIMessageManager.Instance?.MostrarMensaje("Deseleccionaste el item actual.");
                 selectedIndex = -1;
             }
+        }
+    }
+   
+      void ActualizarUIInventario()
+    {
+        foreach (Transform hijo in contenidoInventario)
+        {
+            Destroy(hijo.gameObject);
+        }
+
+        foreach (string item in items)
+        {
+            GameObject boton = Instantiate(prefabBotonItem, contenidoInventario);
+            boton.GetComponentInChildren<TMP_Text>().text = item;
+
+            // Cuando hacés click en el botón
+            boton.GetComponent<Button>().onClick.AddListener(() => {
+                RemoveItem(item);
+            });
         }
     }
 }
