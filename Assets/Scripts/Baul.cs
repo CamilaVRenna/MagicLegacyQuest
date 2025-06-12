@@ -116,4 +116,9 @@ public class Baul : MonoBehaviour
     {
         CargarBaul();
     }
+
+    public void AbrirOCerrarBaul()
+    {
+        OnMouseDown(); // Reutiliza la lógica existente para alternar el baúl
+    }
 }

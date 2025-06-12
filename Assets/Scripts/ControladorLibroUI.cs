@@ -234,7 +234,7 @@ public class ControladorLibroUI : MonoBehaviour
         {
             PaginaAnterior();
         }
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Escape))
         {
             CerrarLibro();
         }

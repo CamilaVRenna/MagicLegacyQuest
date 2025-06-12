@@ -56,10 +56,17 @@ public class NPCComprador : MonoBehaviour
         public string mensajeTiempoAgotado = "¡Eres demasiado lento, adiós!";
         public AudioClip sonidoTiempoAgotado;
     [Header("UI General")]
-        public TextMeshProUGUI textoTemporizadorCanvas; // Asigna este en el Inspector
+        public TextMeshProUGUI textoTemporizadorCanvas;
+    [Header("Animación")]
+        private Animator animator;
+
+    // Cambia el valor de la recompensa base y penalización
+    private int recompensaBase = 20;
+    private int penalizacionPorError = 5;
 
     void Awake()
     {
+        animator = GetComponent<Animator>();
         estadoActual = EstadoNPC.Inactivo;
         tiempoRestanteEspera = tiempoMaximoEspera;
         tiempoRestanteEsperaAtencion = tiempoMaximoEsperaAtencion;
@@ -71,23 +78,21 @@ public class NPCComprador : MonoBehaviour
     {
         if (estadoActual == EstadoNPC.MoviendoAVentana || estadoActual == EstadoNPC.MoviendoASalida)
         {
+            animator?.SetBool("Caminata", true);
+            animator?.SetBool("Idle", false);
             MoverHaciaDestino();
             return;
         }
 
         if (estadoActual == EstadoNPC.EsperandoAtencion)
         {
+            animator?.SetBool("Idle", true);
+            animator?.SetBool("Caminata", false);
             if (instanciaBocadilloActual == null || !instanciaBocadilloActual.activeSelf)
                 MostrarBocadillo("[E]", false);
 
             GirarHaciaVentana();
-
-            if ((mirandoVentana || gestor?.puntoMiradaVentana == null) && tiempoRestanteEsperaAtencion > 0)
-            {
-                tiempoRestanteEsperaAtencion -= Time.deltaTime;
-                ActualizarUITemporizador();
-                if (tiempoRestanteEsperaAtencion <= 0) TiempoAgotadoEsperandoAtencion();
-            }
+            // Elimina la reducción de tiempo y el llamado a TiempoAgotadoEsperandoAtencion
             return;
         }
 
@@ -111,13 +116,7 @@ public class NPCComprador : MonoBehaviour
             }
 
             GirarHaciaVentana();
-
-            if (tiempoRestanteEspera > 0)
-            {
-                tiempoRestanteEspera -= Time.deltaTime;
-                ActualizarUITemporizador();
-                if (tiempoRestanteEspera <= 0) TiempoAgotado();
-            }
+            // Elimina la reducción de tiempo y el llamado a TiempoAgotado
         }
     }
 
@@ -206,7 +205,6 @@ public class NPCComprador : MonoBehaviour
             else Debug.LogError("No se encontró la ruta 'CanvasBocadillo/FondoBocadillo/TextoTemporizador'.");
         }
         else Debug.LogError("instanciaBocadilloActual es NULL al intentar buscar el temporizador.");
-        ActualizarUITemporizador();
         if (textoTemporizadorActual != null) textoTemporizadorActual.gameObject.SetActive(true);
     }
 
@@ -228,7 +226,10 @@ public class NPCComprador : MonoBehaviour
         {
             GiveFeedback(mensajeFeedbackCorrecto, sonidoPocionCorrecta);
             if (GestorJuego.Instance != null)
-                GestorJuego.Instance.AnadirDinero(GestorJuego.Instance.valorPocionCorrecta);
+            {
+                int recompensaFinal = Mathf.Max(0, recompensaBase - (penalizacionPorError * intentosFallidos));
+                GestorJuego.Instance.AnadirDinero(recompensaFinal);
+            }
             else Debug.LogError("¡GestorJuego no encontrado para añadir dinero!");
             Irse();
         }
@@ -236,17 +237,9 @@ public class NPCComprador : MonoBehaviour
         {
             intentosFallidos++;
             Debug.Log($"Intento fallido #{intentosFallidos}");
-            if (intentosFallidos >= 2)
-            {
-                GiveFeedback(mensajeSegundoFallo, sonidoPocionIncorrecta);
-                Irse();
-            }
-            else
-            {
-                GiveFeedback(mensajeFeedbackIncorrecto, sonidoPocionIncorrecta);
-                estadoActual = EstadoNPC.EnVentanaEsperando;
-                StartCoroutine(RestaurarPedidoDespuesDeFeedback());
-            }
+            GiveFeedback(mensajeFeedbackIncorrecto, sonidoPocionIncorrecta);
+            estadoActual = EstadoNPC.EnVentanaEsperando;
+            StartCoroutine(RestaurarPedidoDespuesDeFeedback());
         }
     }
 
@@ -387,29 +380,6 @@ public class NPCComprador : MonoBehaviour
         if (coroutineRetrasarSalida != null) StopCoroutine(coroutineRetrasarSalida);
     }
 
-    void TiempoAgotado()
-    {
-        Debug.Log($"{gameObject.name}: ¡Se acabó el tiempo de espera!");
-        if (estadoActual != EstadoNPC.EnVentanaEsperando) return;
-        estadoActual = EstadoNPC.ProcesandoEntrega;
-        if (textoTemporizadorActual != null) textoTemporizadorActual.gameObject.SetActive(false);
-        GiveFeedback(mensajeTiempoAgotado, sonidoTiempoAgotado ?? sonidoPocionIncorrecta);
-        Irse();
-    }
-
-    void ActualizarUITemporizador()
-    {
-        if (estadoActual != EstadoNPC.EnVentanaEsperando && estadoActual != EstadoNPC.EsperandoAtencion) return;
-        float tiempoParaMostrar = estadoActual == EstadoNPC.EsperandoAtencion ? tiempoRestanteEsperaAtencion : tiempoRestanteEspera;
-        if (textoTemporizadorCanvas != null)
-        {
-            textoTemporizadorCanvas.text = "Tiempo: " + Mathf.CeilToInt(tiempoParaMostrar).ToString();
-        }
-        // Si quieres ocultar el temporizador del bocadillo:
-        if (textoTemporizadorActual != null && textoTemporizadorActual.gameObject.activeSelf)
-            textoTemporizadorActual.gameObject.SetActive(false);
-    }
-
     private string ObtenerTextoOriginalPedido()
     {
         if (pedidoActual == null) return "¿Necesitas algo?";
@@ -431,18 +401,8 @@ public class NPCComprador : MonoBehaviour
             if (textoTemporizadorActual != null)
             {
                 textoTemporizadorActual.gameObject.SetActive(true);
-                ActualizarUITemporizador();
             }
         }
-    }
-
-    void TiempoAgotadoEsperandoAtencion()
-    {
-        Debug.Log($"{gameObject.name}: ¡Se cansó de esperar atención!");
-        if (estadoActual != EstadoNPC.EsperandoAtencion) return;
-        estadoActual = EstadoNPC.ProcesandoEntrega;
-        GiveFeedback(mensajeTiempoEsperaAgotado, sonidoTiempoAgotado ?? sonidoPocionIncorrecta);
-        Irse();
     }
 
     public void IniciarPedidoYTimer()
@@ -456,7 +416,6 @@ public class NPCComprador : MonoBehaviour
         estadoActual = EstadoNPC.EnVentanaEsperando;
         SolicitarPocion();
         tiempoRestanteEspera = tiempoMaximoEspera;
-        ActualizarUITemporizador();
         if (textoTemporizadorActual != null) textoTemporizadorActual.gameObject.SetActive(true);
     }
 

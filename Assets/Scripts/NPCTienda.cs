@@ -27,15 +27,20 @@ public class NPCTienda : MonoBehaviour
     public DatosIngrediente pluma;
     public DatosIngrediente mariposa;
 
+    private Animator animator;
+    private bool mirandoVentana = false;
+
     private int pasoDialogo = 0; // 0: espera E para palita, 1: espera E para ingredientes, 2: se va
 
     void Start()
     {
+        animator = GetComponent<Animator>();
         // Comienza moviéndose a la ventana
         if (puntoVentana != null)
         {
             destinoActual = puntoVentana.position;
             enMovimiento = true;
+
         }
         else
         {
@@ -47,23 +52,52 @@ public class NPCTienda : MonoBehaviour
     {
         if (enMovimiento)
         {
+            animator?.SetBool("Caminata", true);
+            animator?.SetBool("Idle", false);
+            mirandoVentana = false;
             MoverHaciaDestino();
         }
-        else if (esperandoInteraccion)
+        else
         {
-            if (Input.GetKeyDown(KeyCode.E) && JugadorCerca())
+            animator?.SetBool("Idle", true);
+            animator?.SetBool("Caminata", false);
+            GirarHaciaVentana();
+            if (esperandoInteraccion)
             {
-                esperandoInteraccion = false;
-                if (pasoDialogo == 0)
+                if (Input.GetKeyDown(KeyCode.E) && JugadorCerca())
                 {
-                    StartCoroutine(DialogoPalita());
-                }
-                else if (pasoDialogo == 1)
-                {
-                    StartCoroutine(DialogoIngredientes());
+                    esperandoInteraccion = false;
+                    if (pasoDialogo == 0)
+                    {
+                        StartCoroutine(DialogoPalita());
+                    }
+                    else if (pasoDialogo == 1)
+                    {
+                        StartCoroutine(DialogoIngredientes());
+                    }
                 }
             }
         }
+    }
+
+    void GirarHaciaVentana()
+    {
+        // Usar el punto de mirada del gestor, igual que NPCComprador
+        if (mirandoVentana || gestor == null || gestor.puntoMiradaVentana == null) return;
+        Vector3 dir = gestor.puntoMiradaVentana.position - transform.position;
+        Vector3 dirHoriz = new Vector3(dir.x, 0, dir.z);
+        if (dirHoriz.sqrMagnitude > 0.001f)
+        {
+            Quaternion rotObj = Quaternion.LookRotation(dirHoriz);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotObj, velocidadRotacion * Time.deltaTime);
+            if (Quaternion.Angle(transform.rotation, rotObj) < 1.0f)
+            {
+                transform.rotation = rotObj;
+                mirandoVentana = true;
+                // Debug.Log($"{gameObject.name} terminó de girar hacia la ventana.");
+            }
+        }
+        else mirandoVentana = true;
     }
 
     void MoverHaciaDestino()
@@ -91,6 +125,7 @@ public class NPCTienda : MonoBehaviour
         {
             transform.position = destinoActual;
             enMovimiento = false;
+            mirandoVentana = false; // <--- IMPORTANTE: igual que NPCComprador
 
             if (!yaEntrego)
             {

@@ -55,6 +55,7 @@ public class InteraccionJugador : MonoBehaviour
 
     private bool tiendaAbierta = false;
     private bool esperandoConfirmacionCerrarTienda = false;
+    private Baul baulMiradoActual = null; 
 
     void Start()
     {
@@ -119,6 +120,13 @@ public class InteraccionJugador : MonoBehaviour
             camaMiradaActual.OcultarInformacion();
             camaMiradaActual = null;
         }
+
+        if (baulMiradoActual != null && (!golpeoAlgo || objetoGolpeado != baulMiradoActual.gameObject))
+        {
+            baulMiradoActual = null;
+        }
+
+
         if (ingredienteRecolectableMirado != null && (!golpeoAlgo || objetoGolpeado != ingredienteRecolectableMirado.gameObject))
         {
             ingredienteRecolectableMirado.OcultarInformacion();
@@ -148,6 +156,11 @@ public class InteraccionJugador : MonoBehaviour
                 if (objetoGolpeado.TryGetComponent(out LibroRecetasInteractuable libroCtrl)) { libroMiradoActual = libroCtrl; libroCtrl.MostrarInformacion(); return; }
                 if (objetoGolpeado.TryGetComponent(out PuertaCambioEscena puertaCtrl)) { puertaMiradaActual = puertaCtrl; puertaMiradaActual.MostrarInformacion(); return; }
                 if (objetoGolpeado.TryGetComponent(out CamaInteractuable camaCtrl)) { camaMiradaActual = camaCtrl; camaMiradaActual.MostrarInformacion(); }
+                if (objetoGolpeado.TryGetComponent(out Baul baulCtrl))
+                    {
+                        baulMiradoActual = baulCtrl;
+                        return;
+                    }
                 if (objetoGolpeado.TryGetComponent(out IngredienteRecolectable ingRecCtrl))
                 {
                     if (puertaMiradaActual != null) { puertaMiradaActual.OcultarInformacion(); puertaMiradaActual = null; }
@@ -171,7 +184,10 @@ public class InteraccionJugador : MonoBehaviour
         else if (puertaMiradaActual != null) InteractuarConPuerta();
         else if (camaMiradaActual != null) InteractuarConCama();
         else if (ingredienteRecolectableMirado != null) InteractuarConIngredienteRecolectable();
-        else if (cartelMiradoActual != null) InteractuarConCartel(); // NUEVO
+        else if (cartelMiradoActual != null) InteractuarConCartel();
+        else if (baulMiradoActual != null) {
+            baulMiradoActual.AbrirOCerrarBaul();
+        }
     }
 
     void InteractuarConFuenteIngredientes()
