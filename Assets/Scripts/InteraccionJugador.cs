@@ -78,6 +78,59 @@ public class InteraccionJugador : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q) && tipoItemSostenido != TipoItem.Nada) { ReproducirSonidoJugador(sonidoTirarItem); LimpiarItemSostenido(); }
         if (Input.GetMouseButtonDown(1) && tipoItemSostenido == TipoItem.FrascoLleno) MostrarContenidoFrascoLleno();
 
+        if (Input.GetKeyDown(KeyCode.Q) && fuenteIngredientesMirada != null)
+        {
+            string nombreIngrediente = fuenteIngredientesMirada.datosIngrediente.nombreIngrediente;
+            int cantidadJugador = InventoryManager.Instance.ContarItem(nombreIngrediente);
+            if (cantidadJugador > 0)
+            {
+                fuenteIngredientesMirada.DevolverIngrediente(); // <-- Quitar argumento
+                // Muestra mensaje o actualiza UI
+            }
+            else
+            {
+                // Opcional: mensaje de que no tienes ese ingrediente
+            }
+        }
+
+        // Sincroniza el item sostenido con el slot seleccionado del inventario
+        if (InventoryManager.Instance != null)
+        {
+            int selIdx = InventoryManager.Instance.GetSelectedIndex();
+            if (selIdx >= 0 && selIdx < InventoryManager.Instance.items.Count)
+            {
+                var stack = InventoryManager.Instance.items[selIdx];
+                if (stack != null && (itemSostenido == null || (itemSostenido is DatosIngrediente di && di.nombreIngrediente != stack.nombre)))
+                {
+                    // Buscar el ScriptableObject correspondiente
+                    DatosIngrediente ing = InventoryManager.Instance.todosLosIngredientes.Find(i => i.nombreIngrediente == stack.nombre);
+                    if (ing != null)
+                    {
+                        itemSostenido = ing;
+                        tipoItemSostenido = TipoItem.Ingrediente;
+                    }
+                    else
+                    {
+                        DatosFrasco frasco = InventoryManager.Instance.todosLosFrascos.Find(f => f.nombreItem == stack.nombre);
+                        if (frasco != null)
+                        {
+                            itemSostenido = frasco;
+                            tipoItemSostenido = TipoItem.FrascoVacio; // O FrascoLleno según lógica
+                        }
+                        else
+                        {
+                            itemSostenido = null;
+                            tipoItemSostenido = TipoItem.Nada;
+                        }
+                    }
+                }
+            }
+            else if (selIdx == -1)
+            {
+                itemSostenido = null;
+                tipoItemSostenido = TipoItem.Nada;
+            }
+        }
     }
 
     void ManejarInteraccionMirada()
@@ -190,16 +243,59 @@ public class InteraccionJugador : MonoBehaviour
         }
     }
 
-    void InteractuarConFuenteIngredientes()
+void InteractuarConFuenteIngredientes()
+{
+    if (tipoItemSostenido == TipoItem.Nada)
     {
-        if (tipoItemSostenido == TipoItem.Nada)
+        DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
+        if (r != null)
         {
-            DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
-            if (r != null) EstablecerItemSostenido(r, TipoItem.Ingrediente);
-            else MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+            EstablecerItemSostenido(r, TipoItem.Ingrediente);
+            // Ya no agregamos al inventario aquí, lo hace la fuente
         }
-        else MostrarNotificacion("Ya tienes algo en la mano.", -1f, true);
+        else
+        {
+            MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+        }
     }
+    // Permitir agarrar más del mismo ingrediente si ya lo tienes en la mano
+    else if (tipoItemSostenido == TipoItem.Ingrediente && itemSostenido is DatosIngrediente ingActual
+             && fuenteIngredientesMirada.datosIngrediente == ingActual)
+    {
+        DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
+        if (r != null)
+        {
+            // Sumar al inventario lógico y visual
+            InventoryManager.Instance?.AddItem(ingActual.nombreIngrediente);
+            InventoryManager.Instance?.AddItemVisual(ingActual.icono, -1); // <-- slotIndex -1
+            // Opcional: feedback visual/sonoro
+            ReproducirSonidoJugador(sonidoRecogerItem);
+        }
+        else
+        {
+            MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+        }
+    }
+    // --- NUEVO: Si tienes otro ingrediente, lo suelta automáticamente y agarra el nuevo ---
+    else if (tipoItemSostenido == TipoItem.Ingrediente && itemSostenido is DatosIngrediente ingActual2
+             && fuenteIngredientesMirada.datosIngrediente != ingActual2)
+    {
+        LimpiarItemSostenido();
+        DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
+        if (r != null)
+        {
+            EstablecerItemSostenido(r, TipoItem.Ingrediente);
+        }
+        else
+        {
+            MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+        }
+    }
+    else
+    {
+        MostrarNotificacion("Ya tienes algo en la mano.", -1f, true);
+    }
+}
 
     void InteractuarConFuenteFrascos()
     {
@@ -214,31 +310,29 @@ public class InteraccionJugador : MonoBehaviour
 
     void InteractuarConCaldero()
     {
-        switch (tipoItemSostenido)
+        // Ahora usa el objeto seleccionado del inventario
+        if (InventoryManager.Instance != null)
         {
-            case TipoItem.Ingrediente:
-                if (itemSostenido is DatosIngrediente i && calderoMiradoActual.AnadirIngrediente(i)) LimpiarItemSostenido();
-                break;
-            case TipoItem.FrascoVacio:
-                if (calderoMiradoActual.EstaPocionLista())
+            int selIdx = InventoryManager.Instance.GetSelectedIndex();
+            if (selIdx >= 0 && selIdx < InventoryManager.Instance.items.Count)
+            {
+                var stack = InventoryManager.Instance.items[selIdx];
+                // Buscar el ScriptableObject correspondiente
+                DatosIngrediente ing = InventoryManager.Instance.todosLosIngredientes.Find(i => i.nombreIngrediente == stack.nombre);
+                if (ing != null)
                 {
-                    DatosIngrediente[] c = calderoMiradoActual.RecogerPocion();
-                    if (c != null) LlenarFrascoSostenido(c);
+                    // Agrega el ingrediente seleccionado al caldero
+                    calderoMiradoActual.AgregarIngrediente(ing);
+                    InventoryManager.Instance.RemoveItem(ing.nombreIngrediente, 1);
+                    // Actualiza itemSostenido y tipoItemSostenido
+                    itemSostenido = null;
+                    tipoItemSostenido = TipoItem.Nada;
+                    return;
                 }
-                else if (calderoMiradoActual.estadoActual == Caldero.EstadoCaldero.ListoParaRemover)
-                    MostrarNotificacion("Debes remover la mezcla primero.", -1f, true);
-                else MostrarNotificacion("Caldero vacío o poción no lista.", -1f, true);
-                break;
-            case TipoItem.Nada:
-                if (calderoMiradoActual.estadoActual == Caldero.EstadoCaldero.ListoParaRemover)
-                    calderoMiradoActual.IntentarIniciarRemovido();
-                else if (calderoMiradoActual.EstaPocionLista())
-                    MostrarNotificacion("Necesitas frasco vacío.", -1f, true);
-                break;
-            case TipoItem.FrascoLleno:
-                MostrarNotificacion("Ya tienes una poción.", -1f, true);
-                break;
+                // Si es frasco, lógica similar...
+            }
         }
+        // ...si no hay seleccionado, puedes mostrar mensaje de error...
     }
 
     void InteractuarConNPC()
@@ -342,6 +436,13 @@ public class InteraccionJugador : MonoBehaviour
 
         if (tipoItemSostenido == TipoItem.Nada)
         {
+            // Agrega la imagen al inventario visual
+            if (InventoryManager.Instance != null)
+            {
+                var datos = ingredienteRecolectableMirado.datosIngrediente;
+                InventoryManager.Instance.AddItemVisual(datos.icono, -1); // <-- slotIndex -1
+                InventoryManager.Instance.AddItem(datos.nombreIngrediente); // <-- Asegura que usa el nombre correcto
+            }
             ingredienteRecolectableMirado.Recolectar();
         }
         else MostrarNotificacion("Tienes las manos llenas para recolectar.", 2f, true);

@@ -1,20 +1,23 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "Nuevo Frasco", menuName = "Alquimia/Datos Frasco")]
 public class DatosFrasco : ScriptableObject
 {
-    [Header("Información Básica")]
-    public string nombreItem = "Frasco Vacío";
+    [Header("Informaciï¿½n Bï¿½sica")]
+    public string nombreItem = "Frasco Vacï¿½o";
     public Sprite icono;
 
-    [Header("Visualización 3D (En Mano)")]
+    [Header("Visualizaciï¿½n 3D (En Mano)")]
     public GameObject prefabModelo3D;
     public Material materialVacio;
     public Material materialLleno;
 
-    // --- AÑADIDO ---
+    // --- Aï¿½ADIDO ---
     [Header("Ajustes Visuales en Mano")]
-    [Tooltip("Rotación adicional en Euler(X,Y,Z) para que se vea bien en la mano.")]
+    [Tooltip("Rotaciï¿½n adicional en Euler(X,Y,Z) para que se vea bien en la mano.")]
     public Vector3 rotacionEnMano = Vector3.zero; // <<--- NUEVO CAMPO
     // ---------------
+
+    public Image imagenInventario;
 }

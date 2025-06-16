@@ -208,7 +208,7 @@ public class NPCTienda : MonoBehaviour
         // Añadir la palita al inventario
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.AddItem("palita");
+            InventoryManager.Instance.AddItemByName("palita");
             // Mostrar mensaje en la interfaz
             InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
             if (jugador != null)
