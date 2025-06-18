@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 1704410961565184163}
   m_Layer: 7
   m_Name: RecolectablePanal
-  m_TagString: Untagged
+  m_TagString: Recolectable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

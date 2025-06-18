@@ -6,7 +6,6 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
 
-    // Cambia la estructura para soportar stacking
     [System.Serializable]
     public class ItemStack
     {
@@ -24,19 +23,30 @@ public class InventoryManager : MonoBehaviour
     private int selectedIndex = -1;
     private bool inventarioAbierto = false;
 
-    [Header("Slots visuales del inventario")]
-    public Image[] slots; // Asigna los slots en el inspector
-    public Text[] cantidadTexts; // Asigna los textos de cantidad en el inspector (uno por slot)
-
-    // NUEVO: Referencia al catálogo de ingredientes y frascos para buscar iconos por nombre
     public CatalogoRecetas catalogoRecetas;
-    public List<DatosIngrediente> todosLosIngredientes; // Asignar en inspector o en Start
-    public List<DatosFrasco> todosLosFrascos; // Asignar en inspector o en Start
+    public List<DatosIngrediente> todosLosIngredientes;
+    public List<DatosFrasco> todosLosFrascos;
+
+    private Image[] slots; // Se asignan en runtime desde la UI
+    private Text[] cantidadTexts;
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public void SetVisualReferences(Image[] newSlots, Text[] newCantidadTexts)
+    {
+        slots = newSlots;
+        cantidadTexts = newCantidadTexts;
     }
 
     public void AddItem(string item)
@@ -49,15 +59,12 @@ public class InventoryManager : MonoBehaviour
         else
         {
             items.Add(new ItemStack(item, 1));
-            Sprite icono = BuscarIconoPorNombre(item);
-            if (icono != null)
-                AddItemVisual(icono, items.Count - 1);
         }
+
         UIMessageManager.Instance?.MostrarMensaje("Agregado al inventario: " + item);
-        ActualizarUIVisual();
+        ActualizarUIVisual(slots, cantidadTexts);
     }
 
-    // NUEVO: Agrega ítem y su icono visual si corresponde
     public void AddItemByName(string item)
     {
         AddItem(item);
@@ -71,20 +78,16 @@ public class InventoryManager : MonoBehaviour
             stack.cantidad--;
             if (stack.cantidad <= 0)
             {
-                int idx = items.IndexOf(stack);
                 items.Remove(stack);
-                Sprite icono = BuscarIconoPorNombre(item);
-                if (icono != null)
-                    RemoveItemVisual(icono, idx);
             }
             UIMessageManager.Instance?.MostrarMensaje($"Removiste {item} del inventario.");
         }
         if (selectedIndex >= items.Count)
             selectedIndex = Mathf.Max(0, items.Count - 1);
-        ActualizarUIVisual();
+
+        ActualizarUIVisual(slots, cantidadTexts);
     }
 
-    // NUEVO: Eliminar varias unidades de un ítem
     public void RemoveItem(string item, int cantidad)
     {
         var stack = items.Find(i => i.nombre == item);
@@ -96,15 +99,11 @@ public class InventoryManager : MonoBehaviour
             eliminados = quitar;
             if (stack.cantidad <= 0)
             {
-                int idx = items.IndexOf(stack);
                 items.Remove(stack);
-                Sprite icono = BuscarIconoPorNombre(item);
-                if (icono != null)
-                    RemoveItemVisual(icono, idx);
             }
             UIMessageManager.Instance?.MostrarMensaje($"Eliminado del inventario: {item} x{eliminados}");
         }
-        ActualizarUIVisual();
+        ActualizarUIVisual(slots, cantidadTexts);
     }
 
     public bool HasItem(string item)
@@ -130,52 +129,10 @@ public class InventoryManager : MonoBehaviour
         return selectedIndex;
     }
 
-    // Cambia para soportar stacking y cantidad visual
-    public void AddItemVisual(Sprite icono, int slotIndex = -1)
+    public void ActualizarUIVisual(Image[] slots, Text[] cantidadTexts)
     {
-        if (slots == null) return;
-        if (slotIndex == -1)
-        {
-            // Busca el primer slot vacío
-            for (int i = 0; i < slots.Length; i++)
-            {
-                if (!slots[i].enabled)
-                {
-                    slotIndex = i;
-                    break;
-                }
-            }
-        }
-        if (slotIndex < 0 || slotIndex >= slots.Length) return;
-        slots[slotIndex].sprite = icono;
-        slots[slotIndex].enabled = true;
-    }
+        SetVisualReferences(slots, cantidadTexts);
 
-    public void RemoveItemVisual(Sprite icono, int slotIndex = -1)
-    {
-        if (slots == null) return;
-        if (slotIndex == -1)
-        {
-            // Busca el slot que tiene este icono
-            for (int i = 0; i < slots.Length; i++)
-            {
-                if (slots[i].sprite == icono)
-                {
-                    slotIndex = i;
-                    break;
-                }
-            }
-        }
-        if (slotIndex < 0 || slotIndex >= slots.Length) return;
-        slots[slotIndex].sprite = null;
-        slots[slotIndex].enabled = false;
-        if (cantidadTexts != null && slotIndex < cantidadTexts.Length)
-            cantidadTexts[slotIndex].text = "";
-    }
-
-    private void ActualizarUIVisual()
-    {
-        // Actualiza los iconos y cantidades en los slots
         for (int i = 0; i < slots.Length; i++)
         {
             if (i < items.Count)
@@ -194,10 +151,10 @@ public class InventoryManager : MonoBehaviour
                     cantidadTexts[i].text = "";
             }
         }
+
         ActualizarSeleccionVisual();
     }
 
-    // Busca el icono correspondiente por nombre (ingrediente o frasco)
     private Sprite BuscarIconoPorNombre(string nombre)
     {
         if (todosLosIngredientes != null)
@@ -217,7 +174,8 @@ public class InventoryManager : MonoBehaviour
 
     private void Update()
     {
-        // Permitir seleccionar slots con teclas numéricas SIEMPRE
+        if (slots == null) return;
+
         for (int i = 0; i < Mathf.Min(slots.Length, items.Count); i++)
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
@@ -236,7 +194,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // Soltar item actual con Q (lo pasa al baúl y lo elimina del inventario)
         if (Input.GetKeyDown(KeyCode.Q) && selectedIndex >= 0 && selectedIndex < items.Count)
         {
             string item = items[selectedIndex].nombre;
@@ -251,14 +208,8 @@ public class InventoryManager : MonoBehaviour
                 Debug.LogWarning("No se encontró el baúl en la escena.");
             }
             RemoveItem(item);
-            if (items.Count == 0)
-                selectedIndex = -1;
-            else if (selectedIndex >= items.Count)
-                selectedIndex = items.Count - 1;
-            ActualizarSeleccionVisual();
         }
 
-        // Tirar item actual con T (solo deselecciona, NO elimina)
         if (Input.GetKeyDown(KeyCode.T) && selectedIndex >= 0 && selectedIndex < items.Count)
         {
             UIMessageManager.Instance?.MostrarMensaje("Deseleccionaste el item actual.");
@@ -266,25 +217,17 @@ public class InventoryManager : MonoBehaviour
             ActualizarSeleccionVisual();
         }
 
-        // Inventario visual (abrir/cerrar) solo muestra mensaje, no afecta selección
         if (Input.GetKeyDown(KeyCode.I))
         {
             inventarioAbierto = !inventarioAbierto;
             if (inventarioAbierto)
             {
                 string lista = "Q para soltar item actual\nT para tirar item actual\n";
-                if (items.Count == 0)
+                for (int i = 0; i < items.Count; i++)
                 {
-                  // lista += "Inventario vacío";
-                }
-                else
-                {
-                    for (int i = 0; i < items.Count; i++)
-                    {
-                        string itemStr = $"{i + 1}. {items[i].nombre} x{items[i].cantidad}";
-                        if (i == selectedIndex) itemStr += " *";
-                        lista += itemStr + "\n";
-                    }
+                    string itemStr = $"{i + 1}. {items[i].nombre} x{items[i].cantidad}";
+                    if (i == selectedIndex) itemStr += " *";
+                    lista += itemStr + "\n";
                 }
                 UIMessageManager.Instance?.MostrarMensaje(lista);
             }
@@ -295,7 +238,6 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // --- NUEVO: Actualiza el color de los slots para mostrar cuál está seleccionado ---
     private void ActualizarSeleccionVisual()
     {
         if (slots == null) return;
@@ -303,7 +245,7 @@ public class InventoryManager : MonoBehaviour
         {
             if (i == selectedIndex && slots[i].sprite != null)
             {
-                slots[i].color = Color.Lerp(Color.white, Color.yellow, 0.25f); // Un poco más blanco/amarillo
+                slots[i].color = Color.Lerp(Color.white, Color.yellow, 0.25f);
             }
             else
             {
@@ -311,23 +253,4 @@ public class InventoryManager : MonoBehaviour
             }
         }
     }
-
-      /*void ActualizarUIInventario()
-    {
-        foreach (Transform hijo in contenidoInventario)
-        {
-            Destroy(hijo.gameObject);
-        }
-
-        foreach (string item in items)
-        {
-            GameObject boton = Instantiate(prefabBotonItem, contenidoInventario);
-            boton.GetComponentInChildren<TMP_Text>().text = item;
-
-            // Cuando hacés click en el botón
-            boton.GetComponent<Button>().onClick.AddListener(() => {
-                RemoveItem(item);
-            });
-        }
-    }*/
 }

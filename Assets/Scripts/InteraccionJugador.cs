@@ -266,8 +266,8 @@ void InteractuarConFuenteIngredientes()
         if (r != null)
         {
             // Sumar al inventario lógico y visual
-            InventoryManager.Instance?.AddItem(ingActual.nombreIngrediente);
-            InventoryManager.Instance?.AddItemVisual(ingActual.icono, -1); // <-- slotIndex -1
+            //InventoryManager.Instance?.AddItem(ingActual.nombreIngrediente);
+            //InventoryManager.Instance?.AddItemVisual(ingActual.icono, -1); // <-- slotIndex -1
             // Opcional: feedback visual/sonoro
             ReproducirSonidoJugador(sonidoRecogerItem);
         }
@@ -440,8 +440,8 @@ void InteractuarConFuenteIngredientes()
             if (InventoryManager.Instance != null)
             {
                 var datos = ingredienteRecolectableMirado.datosIngrediente;
-                InventoryManager.Instance.AddItemVisual(datos.icono, -1); // <-- slotIndex -1
-                InventoryManager.Instance.AddItem(datos.nombreIngrediente); // <-- Asegura que usa el nombre correcto
+                //InventoryManager.Instance.AddItemVisual(datos.icono, -1); // <-- slotIndex -1
+                //InventoryManager.Instance.AddItem(datos.nombreIngrediente); // <-- Asegura que usa el nombre correcto
             }
             ingredienteRecolectableMirado.Recolectar();
         }
