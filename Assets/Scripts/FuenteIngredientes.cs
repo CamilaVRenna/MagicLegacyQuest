@@ -10,6 +10,10 @@ public class FuenteIngredientes : MonoBehaviour
     public GameObject prefabCanvasInfo;
     private GameObject canvasInfoActual = null;
 
+    // --- NUEVO: Llevar registro de cuántos ingredientes entregó esta fuente al jugador ---
+    private int cantidadEntregadaAlJugador = 0;
+    // ----------------------------------------------------------
+
     public void MostrarInformacion()
     {
         if (canvasInfoActual == null && prefabCanvasInfo != null)
@@ -61,35 +65,74 @@ public class FuenteIngredientes : MonoBehaviour
     }
 
     public DatosIngrediente IntentarRecoger()
+{
+    if (datosIngrediente == null)
     {
-        if (datosIngrediente == null)
+        Debug.LogError($"Fuente {gameObject.name} no tiene DatosIngrediente asignado!");
+        return null;
+    }
+
+    int cantidadEnStock = 0;
+    if (GestorJuego.Instance != null)
+    {
+        cantidadEnStock = GestorJuego.Instance.ObtenerStockTienda(datosIngrediente);
+    }
+    else
+    {
+        Debug.LogError($"No se encontró GestorJuego para consumir stock de {datosIngrediente.nombreIngrediente}");
+        return null;
+    }
+
+    if (cantidadEnStock > 0)
+    {
+        for (int i = 0; i < cantidadEnStock; i++)
         {
-            Debug.LogError($"Fuente {gameObject.name} no tiene DatosIngrediente asignado!");
-            return null;
+            GestorJuego.Instance.ConsumirStockTienda(datosIngrediente);
+            InventoryManager.Instance?.AddItem(datosIngrediente.nombreIngrediente); // ✅ Solo esto
         }
 
-        bool consumidoConExito = false;
-        if (GestorJuego.Instance != null)
-        {
-            consumidoConExito = GestorJuego.Instance.ConsumirStockTienda(datosIngrediente);
-        }
-        else
-        {
-            Debug.LogError($"No se encontr� GestorJuego para consumir stock de {datosIngrediente.nombreIngrediente}");
-            return null;
-        }
+        cantidadEntregadaAlJugador += cantidadEnStock;
+        Debug.Log($"Recogidos {cantidadEnStock} de {datosIngrediente.nombreIngrediente} de la fuente (Stock Global).");
+        ActualizarVisuales();
+        return datosIngrediente;
+    }
+    else
+    {
+        Debug.Log($"¡No queda {datosIngrediente.nombreIngrediente} en el stock!");
+        return null;
+    }
+}
 
-        if (consumidoConExito)
+
+    public void DevolverIngrediente()
+{
+    if (datosIngrediente == null) return;
+    if (GestorJuego.Instance != null && InventoryManager.Instance != null)
+    {
+        int cantidadEnInventario = InventoryManager.Instance.ContarItem(datosIngrediente.nombreIngrediente);
+        int cantidadADevolver = Mathf.Min(cantidadEnInventario, cantidadEntregadaAlJugador);
+        if (cantidadADevolver > 0)
         {
-            Debug.Log($"Recogido {datosIngrediente.nombreIngrediente} de la fuente (Stock Global).");
+            InventoryManager.Instance.RemoveItem(datosIngrediente.nombreIngrediente, cantidadADevolver);
+
+            GestorJuego.Instance.AnadirStockTienda(datosIngrediente, cantidadADevolver);
+            cantidadEntregadaAlJugador -= cantidadADevolver;
             ActualizarVisuales();
-            return datosIngrediente;
+
+            UIMessageManager.Instance?.MostrarMensaje($"Devolviste {cantidadADevolver} {datosIngrediente.nombreIngrediente}(s) a la fuente.");
         }
         else
         {
-            Debug.Log($"�No queda {datosIngrediente.nombreIngrediente} en el stock!");
-            return null;
+            UIMessageManager.Instance?.MostrarMensaje($"No tienes más {datosIngrediente.nombreIngrediente} para devolver aquí.");
         }
+    }
+}
+
+
+    // --- NUEVO: Permite sumar 1 cuando se agrega al caldero ---
+    public void RegistrarIngredienteDevueltoDesdeCaldero()
+    {
+        cantidadEntregadaAlJugador += 1;
     }
 
     void ActualizarVisuales()

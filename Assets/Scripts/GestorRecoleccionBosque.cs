@@ -4,110 +4,97 @@ using System.Linq; // Necesario para LINQ (GroupBy, OrderBy, etc.)
 
 public class GestorRecoleccionBosque : MonoBehaviour
 {
-    // --- Clase interna para definir reglas por ingrediente ---
     [System.Serializable] // Para que se vea en el Inspector
     public class ConfigSpawnIngrediente
     {
         [Tooltip("El tipo de ingrediente para esta regla.")]
         public DatosIngrediente ingrediente;
-        [Tooltip("Cuántos de ESTE ingrediente aparecerán como MÁXIMO cada día.")]
+        [Tooltip("Cuï¿½ntos de ESTE ingrediente aparecerï¿½n como Mï¿½XIMO cada dï¿½a.")]
         public int maxPorDia;
-        [Tooltip("Cuántos días deben pasar desde la recolección para que pueda volver a aparecer (1=al día sig., 2=esperar 1 día).")]
+        [Tooltip("Cuï¿½ntos dï¿½as deben pasar desde la recolecciï¿½n para que pueda volver a aparecer (1=al dï¿½a sig., 2=esperar 1 dï¿½a).")]
         public int diasCooldown = 1;
         [Range(0f, 1f)] // Slider de 0 a 1
         [Tooltip("Probabilidad (0=0%, 1=100%) de que aparezca en un punto disponible.")]
         public float probabilidadSpawn = 1.0f;
     }
-    // --- Fin clase interna ---
 
-    [Header("Configuración de Spawn")]
-    [Tooltip("Define aquí las reglas para cada tipo de ingrediente que quieras que aparezca en el bosque.")]
+    [Header("Configuraciï¿½n de Spawn")]
+    [Tooltip("Define aquï¿½ las reglas para cada tipo de ingrediente que quieras que aparezca en el bosque.")]
     public List<ConfigSpawnIngrediente> configuracionSpawns; // Configura esto en el Inspector
 
     [Header("Puntos de Spawn (Opcional)")]
-    [Tooltip("Puedes dejarla vacía para que busque todos los puntos automáticamente al iniciar, o arrastrarlos manualmente.")]
+    [Tooltip("Puedes dejarla vacï¿½a para que busque todos los puntos automï¿½ticamente al iniciar, o arrastrarlos manualmente.")]
     public List<PuntoSpawnRecoleccion> todosLosPuntos;
 
-    // Awake se llama una vez cuando el objeto se crea/activa
     void Awake()
     {
-        // Buscar todos los puntos de spawn en la escena si no se asignaron manualmente
         if (todosLosPuntos == null || todosLosPuntos.Count == 0)
         {
             todosLosPuntos = FindObjectsOfType<PuntoSpawnRecoleccion>().ToList();
-            Debug.Log($"[GestorRecoleccion] Encontrados {todosLosPuntos.Count} Puntos de Spawn de Recolección.");
+            Debug.Log($"[GestorRecoleccion] Encontrados {todosLosPuntos.Count} Puntos de Spawn de Recolecciï¿½n.");
         }
         else { Debug.Log($"[GestorRecoleccion] Usando {todosLosPuntos.Count} Puntos de Spawn asignados manualmente."); }
     }
 
-    // Start se llama después de Awake
     void Start()
     {
-        // Generar los ingredientes correspondientes al estado actual del juego
         GenerarIngredientesDelDia();
     }
 
-    // Método principal que decide qué y dónde spawnear
     void GenerarIngredientesDelDia()
     {
-        if (GestorJuego.Instance == null) { Debug.LogError("GestorRecoleccion: No se encontró GestorJuego."); return; }
+        Debug.Log($"[GestorRecoleccion] Hora actual del juego: {GestorJuego.Instance.horaActual}");
+
+        if (GestorJuego.Instance == null) { Debug.LogError("GestorRecoleccion: No se encontrÃ³ GestorJuego."); return; }
         if (todosLosPuntos == null || todosLosPuntos.Count == 0) { Debug.LogWarning("GestorRecoleccion: No hay puntos de spawn definidos en la escena."); return; }
 
-        if (GestorJuego.Instance.horaActual != HoraDelDia.Tarde) 
-        {
-             Debug.Log($"[GestorRecoleccion] No es de Tarde ({GestorJuego.Instance.horaActual}), no se generan ingredientes.");
-             LimpiarObjetosInstanciados(); // Limpiar por si acaso
-             return;
-        }
+        // Elimina este bloque:
+        // if (GestorJuego.Instance.horaActual != HoraDelDia.Tarde) 
+        // {
+        //      Debug.Log($"[GestorRecoleccion] No es de Tarde ({GestorJuego.Instance.horaActual}), no se generan ingredientes.");
+        //      LimpiarObjetosInstanciados(); // Limpiar por si acaso
+        //      return;
+        // }
+
+        Debug.Log("[GestorRecoleccion] Â¡Se generarÃ¡n ingredientes sin importar la hora!");
 
         int diaActual = GestorJuego.Instance.diaActual;
-        Debug.Log($"--- [GestorRecoleccion] Iniciando generación para el Día {diaActual} ---");
+        Debug.Log($"--- [GestorRecoleccion] Iniciando generaciï¿½n para el Dï¿½a {diaActual} ---");
 
-        // 1. Limpiar cualquier objeto que pudiera haber quedado del día anterior
         LimpiarObjetosInstanciados();
 
-        // 2. Agrupar puntos por tipo de ingrediente
         var puntosAgrupados = todosLosPuntos
-                              .Where(p => p != null && p.ingredienteParaSpawnear != null)
-                              .GroupBy(p => p.ingredienteParaSpawnear);
+                            .Where(p => p != null && p.ingredienteParaSpawnear != null)
+                            .GroupBy(p => p.ingredienteParaSpawnear);
 
-        // 3. Iterar por cada tipo de ingrediente encontrado en los puntos
         foreach (var grupo in puntosAgrupados)
         {
             DatosIngrediente tipoIngrediente = grupo.Key;
             List<PuntoSpawnRecoleccion> puntosParaEsteTipo = grupo.ToList();
 
-            // Buscar la configuración específica para este ingrediente
             ConfigSpawnIngrediente config = configuracionSpawns.FirstOrDefault(c => c.ingrediente == tipoIngrediente);
 
             if (config == null)
             {
-                Debug.LogWarning($"No hay configuración de spawn para '{tipoIngrediente.nombreIngrediente}'. No aparecerá.");
+                Debug.LogWarning($"No hay configuraciï¿½n de spawn para '{tipoIngrediente.nombreIngrediente}'. No aparecerï¿½.");
                 continue; // Pasar al siguiente tipo
             }
 
-            // Filtrar los puntos que están listos para reaparecer (cooldown cumplido Y sin objeto actual)
             List<PuntoSpawnRecoleccion> puntosDisponibles = puntosParaEsteTipo
                 .Where(p => p.objetoInstanciadoActual == null &&
                             diaActual >= p.diaUltimaRecoleccion + config.diasCooldown)
                 .ToList();
 
-            // Debug.Log($"Ingrediente: {tipoIngrediente.nombreIngrediente} - Puntos Totales: {puntosParaEsteTipo.Count}, Puntos Disponibles Hoy: {puntosDisponibles.Count}");
-
-            // Calcular cuántos vamos a intentar spawnear hoy
             int maxASpawnearEsteTipo = Mathf.Min(config.maxPorDia, puntosDisponibles.Count);
             int spawneadosEsteTipo = 0;
 
-            // Mezclar los puntos disponibles para que la aparición sea aleatoria entre ellos
             System.Random rng = new System.Random();
             puntosDisponibles = puntosDisponibles.OrderBy(p => rng.Next()).ToList();
 
-            // Intentar spawnear en los puntos disponibles
             foreach (PuntoSpawnRecoleccion punto in puntosDisponibles)
             {
-                if (spawneadosEsteTipo >= maxASpawnearEsteTipo) break; // Ya llegamos al máximo por día para este tipo
+                if (spawneadosEsteTipo >= maxASpawnearEsteTipo) break; // Ya llegamos al mï¿½ximo por dï¿½a para este tipo
 
-                // Comprobar probabilidad
                 if (Random.value <= config.probabilidadSpawn)
                 {
                     GameObject prefab = tipoIngrediente.prefabRecolectable;
@@ -115,13 +102,10 @@ public class GestorRecoleccionBosque : MonoBehaviour
                     {
                         Quaternion rotacion = punto.rotacionAleatoriaY ?
                                             Quaternion.Euler(0, Random.Range(0f, 360f), 0) * prefab.transform.rotation : // Rota Y + base prefab
-                                            prefab.transform.rotation; // Usa rotación base prefab
+                                            prefab.transform.rotation; // Usa rotaciï¿½n base prefab
 
                         GameObject instanciado = Instantiate(prefab, punto.transform.position, rotacion);
-                        // Hacerlo hijo del punto ayuda a organizar la jerarquía (opcional)
-                        // instanciado.transform.SetParent(punto.transform);
 
-                        // Guardar referencias importantes
                         punto.objetoInstanciadoActual = instanciado;
                         IngredienteRecolectable recolectable = instanciado.GetComponent<IngredienteRecolectable>();
                         if (recolectable != null) { recolectable.puntoOrigen = punto; }
@@ -130,17 +114,14 @@ public class GestorRecoleccionBosque : MonoBehaviour
                     }
                     else { Debug.LogWarning($"Ingrediente '{tipoIngrediente.name}' no tiene 'Prefab Recolectable' asignado."); }
                 }
-                // else -> Falló chequeo de probabilidad
             }
-            Debug.Log($"-> Spawneados {spawneadosEsteTipo} de '{tipoIngrediente.nombreIngrediente}' (Máx Diario: {config.maxPorDia}, Puntos Disponibles Hoy: {puntosDisponibles.Count})");
+            Debug.Log($"-> Spawneados {spawneadosEsteTipo} de '{tipoIngrediente.nombreIngrediente}' (Mï¿½x Diario: {config.maxPorDia}, Puntos Disponibles Hoy: {puntosDisponibles.Count})");
         }
-        Debug.Log("--- [GestorRecoleccion] Generación de ingredientes terminada ---");
+        Debug.Log("--- [GestorRecoleccion] Generaciï¿½n de ingredientes terminada ---");
     }
 
-    // Limpia (destruye) cualquier objeto de ingrediente que esté actualmente instanciado en los puntos
     void LimpiarObjetosInstanciados()
     {
-        // Debug.Log("[GestorRecoleccion] Limpiando objetos instanciados del día anterior..."); // Log opcional
         int cont = 0;
         foreach (var punto in todosLosPuntos)
         {

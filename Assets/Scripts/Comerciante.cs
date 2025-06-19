@@ -61,7 +61,7 @@ public GestorUI gestorUI; // Asignalo en el Inspector
 {
     if (gestorUI.IntentarGastarDinero(precio))
     {
-        InventoryManager.Instance?.AddItem(nombreItem);
+        InventoryManager.Instance?.AddItemByName(nombreItem);
         UIMessageManager.Instance?.MostrarMensaje("¡Compraste: " + nombreItem + "!");
     }
     else

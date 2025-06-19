@@ -8,15 +8,15 @@ using UnityEngine.UI; // Necesario para Image
 [RequireComponent(typeof(AudioSource))]
 public class Caldero : MonoBehaviour
 {
-    // --- Configuración Básica, Referencias, Ajustes Minijuego, Cursor (igual) ---
-    [Header("Configuración Básica")]
+    // --- Configuraciï¿½n Bï¿½sica, Referencias, Ajustes Minijuego, Cursor (igual) ---
+    [Header("Configuraciï¿½n Bï¿½sica")]
     public int maximoIngredientes = 5;
     public List<DatosIngrediente> ingredientesActuales = new List<DatosIngrediente>();
     public enum EstadoCaldero { Ocioso, ListoParaRemover, Removiendo, PocionLista, RemovidoFallido }
     public EstadoCaldero estadoActual = EstadoCaldero.Ocioso;
     private ControladorJugador controladorJugador;
     private InteraccionJugador interaccionJugador;
-    [Tooltip("Cámara específica para la vista del minijuego. ¡Obligatoria!")]
+    [Tooltip("Cï¿½mara especï¿½fica para la vista del minijuego. ï¿½Obligatoria!")]
     public Camera camaraMinijuego;
     [Tooltip("Objeto que contiene y rota la cuchara visualmente.")]
     public Transform pivoteRemover;
@@ -33,11 +33,11 @@ public class Caldero : MonoBehaviour
 
     // --- UI Minijuego (Con Barra y Cursor Falso) ---
     [Header("UI Minijuego")] // Renombrado
-    [Tooltip("Arrastra aquí la Imagen UI configurada como Radial 360 (la que se llena).")]
+    [Tooltip("Arrastra aquï¿½ la Imagen UI configurada como Radial 360 (la que se llena).")]
     public Image barraProgresoCircular;
-    [Tooltip("Arrastra aquí el GameObject que actúa como FONDO de la barra de progreso.")]
+    [Tooltip("Arrastra aquï¿½ el GameObject que actï¿½a como FONDO de la barra de progreso.")]
     public GameObject fondoBarraProgreso;
-    [Tooltip("Imagen UI que simula el cursor pegado a la cuchara. ¡Desactivar Raycast Target!")]
+    [Tooltip("Imagen UI que simula el cursor pegado a la cuchara. ï¿½Desactivar Raycast Target!")]
     public Image cursorEnJuegoUI; // Variable para el cursor falso
 
     // --- Sonidos, Recetas, Visual Caldero (igual) ---
@@ -49,7 +49,7 @@ public class Caldero : MonoBehaviour
     [Header("Recetas y Materiales")]
     public CatalogoRecetas catalogoRecetas;
     public Material materialPocionDesconocida;
-    [Header("Configuración Visual Caldero")]
+    [Header("Configuraciï¿½n Visual Caldero")]
     public MeshRenderer rendererLiquidoCaldero;
     public int indiceMaterialLiquido = 2;
     public Material materialLiquidoVacio;
@@ -61,7 +61,10 @@ public class Caldero : MonoBehaviour
     private bool botonRatonRemoverPresionado = false;
     private bool cucharaAgarrada = false;
     private AudioSource audioSourceCaldero;
-    private Vector3 offsetAgarreLocal; // <<--- NUEVO: Guarda dónde agarramos la cuchara (localmente)
+    private Vector3 offsetAgarreLocal; // <<--- NUEVO: Guarda dï¿½nde agarramos la cuchara (localmente)
+
+    // --- NUEVO: Guardar la Ãºltima pociÃ³n creada ---
+    private List<DatosIngrediente> ultimaPocionCreada = null;
 
     void Start()
     {
@@ -70,31 +73,36 @@ public class Caldero : MonoBehaviour
         audioSourceCaldero = GetComponent<AudioSource>();
 
         // Desactivaciones iniciales y comprobaciones
-        if (camaraMinijuego) camaraMinijuego.gameObject.SetActive(false); else Debug.LogError("¡CamaraMinijuego no asignada!", this.gameObject);
-        if (objetoCuchara) objetoCuchara.SetActive(false); else Debug.LogError("¡ObjetoCuchara no asignado!", this.gameObject);
+        if (camaraMinijuego) camaraMinijuego.gameObject.SetActive(false); else Debug.LogError("ï¿½CamaraMinijuego no asignada!", this.gameObject);
+        if (objetoCuchara) objetoCuchara.SetActive(false); else Debug.LogError("ï¿½ObjetoCuchara no asignado!", this.gameObject);
         if (barraProgresoCircular != null) barraProgresoCircular.gameObject.SetActive(false); else Debug.LogWarning("BarraProgresoCircular no asignada.", this.gameObject);
         if (fondoBarraProgreso != null) fondoBarraProgreso.SetActive(false); else Debug.LogWarning("FondoBarraProgreso no asignado.", this.gameObject);
-        if (cursorEnJuegoUI != null) cursorEnJuegoUI.gameObject.SetActive(false); else Debug.LogWarning("CursorEnJuegoUI no asignado.", this.gameObject); // Comprobación
+        if (cursorEnJuegoUI != null) cursorEnJuegoUI.gameObject.SetActive(false); else Debug.LogWarning("CursorEnJuegoUI no asignado.", this.gameObject); // Comprobaciï¿½n
         if (audioSourceCaldero != null) audioSourceCaldero.loop = false;
         // Comprobaciones config
         if (objetoCuchara != null && pivoteRemover != null && objetoCuchara.transform.parent != pivoteRemover) { Debug.LogWarning("ADVERTENCIA: ObjetoCuchara NO es hijo de PivoteRemover.", this.gameObject); }
-        if (objetoCuchara != null && objetoCuchara.GetComponent<Collider>() == null) { Debug.LogError("¡ERROR CRÍTICO! 'objetoCuchara' NO tiene Collider.", objetoCuchara); }
-        if (pivoteRemover == null) { Debug.LogError("¡Falta asignar 'pivoteRemover'!", this.gameObject); }
-        if (catalogoRecetas == null) { Debug.LogError("¡Falta asignar 'Catalogo Recetas'!", this.gameObject); }
+        if (objetoCuchara != null && objetoCuchara.GetComponent<Collider>() == null) { Debug.LogError("ï¿½ERROR CRï¿½TICO! 'objetoCuchara' NO tiene Collider.", objetoCuchara); }
+        if (pivoteRemover == null) { Debug.LogError("ï¿½Falta asignar 'pivoteRemover'!", this.gameObject); }
+        if (catalogoRecetas == null) { Debug.LogError("ï¿½Falta asignar 'Catalogo Recetas'!", this.gameObject); }
         if (materialPocionDesconocida == null) { Debug.LogWarning("Material Pocion Desconocida no asignado."); }
-        if (rendererLiquidoCaldero == null) { Debug.LogError("¡Falta asignar 'Renderer Liquido Caldero'!", this.gameObject); }
+        if (rendererLiquidoCaldero == null) { Debug.LogError("ï¿½Falta asignar 'Renderer Liquido Caldero'!", this.gameObject); }
     }
 
     void Update()
     {
+        // Cambia la tecla de E a R para iniciar el minijuego de remover
         if (estadoActual == EstadoCaldero.Removiendo) { ManejarEntradaRemover(); }
+        else if (estadoActual == EstadoCaldero.ListoParaRemover && Input.GetKeyDown(KeyCode.R))
+        {
+            IntentarIniciarRemovido();
+        }
     }
 
     // AnadirIngrediente, IntentarIniciarRemovido (SIN CAMBIOS)
-    public bool AnadirIngrediente(DatosIngrediente ingrediente) { if (estadoActual != EstadoCaldero.Ocioso && estadoActual != EstadoCaldero.ListoParaRemover) { return false; } if (ingredientesActuales.Count >= maximoIngredientes) { return false; } ingredientesActuales.Add(ingrediente); ReproducirSonidoCaldero(sonidoAnadirIngrediente); if (ingredientesActuales.Count >= 2) { estadoActual = EstadoCaldero.ListoParaRemover; if (interaccionJugador) interaccionJugador.MostrarNotificacion("¡Listo para remover! (E)"); } return true; }
+    public bool AnadirIngrediente(DatosIngrediente ingrediente) { if (estadoActual != EstadoCaldero.Ocioso && estadoActual != EstadoCaldero.ListoParaRemover) { return false; } if (ingredientesActuales.Count >= maximoIngredientes) { return false; } ingredientesActuales.Add(ingrediente); ReproducirSonidoCaldero(sonidoAnadirIngrediente); if (ingredientesActuales.Count >= 2) { estadoActual = EstadoCaldero.ListoParaRemover; if (interaccionJugador) interaccionJugador.MostrarNotificacion("ï¿½Listo para remover! (E)"); } return true; }
     public void IntentarIniciarRemovido() { if (estadoActual == EstadoCaldero.ListoParaRemover) { IniciarMinijuegoRemover(); } }
 
-    // IniciarMinijuegoRemover (SIN CAMBIOS respecto a la versión anterior con barra de progreso)
+    // IniciarMinijuegoRemover (SIN CAMBIOS respecto a la versiï¿½n anterior con barra de progreso)
     void IniciarMinijuegoRemover() { estadoActual = EstadoCaldero.Removiendo; Debug.Log("Iniciando minijuego de remover (CIRCULAR)..."); if (controladorJugador != null) { controladorJugador.AlmacenarRotacionActual(); } anguloTotalRemovido = 0f; botonRatonRemoverPresionado = false; cucharaAgarrada = false; if (pivoteRemover != null) { pivoteRemover.transform.localRotation = Quaternion.identity; } if (camaraMinijuego != null) { if (!camaraMinijuego.gameObject.activeSelf) camaraMinijuego.gameObject.SetActive(true); centroPantallaMinijuego = new Vector2(camaraMinijuego.pixelWidth / 2.0f, camaraMinijuego.pixelHeight / 2.0f); } else { centroPantallaMinijuego = new Vector2(Screen.width / 2.0f, Screen.height / 2.0f); } if (controladorJugador != null) controladorJugador.HabilitarMovimiento(false); if (controladorJugador != null && controladorJugador.camaraJugador != null) controladorJugador.camaraJugador.gameObject.SetActive(false); if (audioSourceCaldero != null && sonidoRemoverBucle != null) { audioSourceCaldero.clip = sonidoRemoverBucle; audioSourceCaldero.loop = true; audioSourceCaldero.Play(); } Cursor.lockState = CursorLockMode.None; Cursor.visible = true; if (texturaCursorMinijuego != null) { Cursor.SetCursor(texturaCursorMinijuego, hotspotCursor, CursorMode.Auto); } else { Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto); } if (cursorEnJuegoUI != null) cursorEnJuegoUI.gameObject.SetActive(false); if (objetoCuchara != null) objetoCuchara.SetActive(true); if (barraProgresoCircular != null) { barraProgresoCircular.fillAmount = 0; barraProgresoCircular.gameObject.SetActive(true); if (fondoBarraProgreso != null) fondoBarraProgreso.SetActive(true); ActualizarBarraProgreso(); } }
 
     // --- ManejarEntradaRemover (Cursor Falso sigue al PUNTO DE AGARRE de la Cuchara) ---
@@ -114,13 +122,13 @@ public class Caldero : MonoBehaviour
                         Debug.Log("Cuchara Agarrada!");
                         cucharaAgarrada = true; botonRatonRemoverPresionado = true; ultimaPosicionRaton = Input.mousePosition;
 
-                        // --- CALCULAR Y GUARDAR OFFSET LOCAL --- <<<--- AÑADIDO
+                        // --- CALCULAR Y GUARDAR OFFSET LOCAL --- <<<--- Aï¿½ADIDO
                         offsetAgarreLocal = objetoCuchara.transform.InverseTransformPoint(hit.point);
                         // -----------------------------------------
 
                         Cursor.visible = false; // Ocultar cursor sistema
                         if (cursorEnJuegoUI != null) { cursorEnJuegoUI.gameObject.SetActive(true); } // Mostrar cursor falso
-                        // La posición se actualizará en el bloque de abajo
+                        // La posiciï¿½n se actualizarï¿½ en el bloque de abajo
                     }
                 }
             }
@@ -141,11 +149,11 @@ public class Caldero : MonoBehaviour
             cucharaAgarrada = false;
         }
 
-        // --- Procesar movimiento SI está agarrada Y presionando ---
+        // --- Procesar movimiento SI estï¿½ agarrada Y presionando ---
         if (botonRatonRemoverPresionado && cucharaAgarrada)
         {
 
-            // --- MOVER CURSOR FALSO AL PUNTO DE AGARRE EN PANTALLA --- <<<--- LÓGICA MODIFICADA
+            // --- MOVER CURSOR FALSO AL PUNTO DE AGARRE EN PANTALLA --- <<<--- Lï¿½GICA MODIFICADA
             if (cursorEnJuegoUI != null && camaraMinijuego != null && objetoCuchara != null)
             {
                 Vector3 puntoAgarreActualMundo = objetoCuchara.transform.TransformPoint(offsetAgarreLocal);
@@ -154,7 +162,7 @@ public class Caldero : MonoBehaviour
             }
             // ------------------------------------------------------------
 
-            // --- Lógica de cálculo de ángulo y rotación (usa Input.mousePosition real) ---
+            // --- Lï¿½gica de cï¿½lculo de ï¿½ngulo y rotaciï¿½n (usa Input.mousePosition real) ---
             Vector2 posActual = Input.mousePosition; Vector2 vAnterior = ultimaPosicionRaton - centroPantallaMinijuego; Vector2 vActual = posActual - centroPantallaMinijuego;
             float dSqrAct = vActual.sqrMagnitude; float rMinSqr = radioMinimoGiro * radioMinimoGiro;
             if (dSqrAct > rMinSqr && (posActual - ultimaPosicionRaton).sqrMagnitude > 0.1f)
@@ -176,17 +184,17 @@ public class Caldero : MonoBehaviour
 
     // ActualizarBarraProgreso (SIN CAMBIOS)
     void ActualizarBarraProgreso() { if (barraProgresoCircular != null) { float progreso = Mathf.Clamp01(Mathf.Abs(anguloTotalRemovido) / anguloObjetivoRemover); barraProgresoCircular.fillAmount = progreso; } }
-    // --- Opcional: Método para actualizar Texto (si lo prefieres) ---
-    // void ActualizarTextoProgresoRemover() { if (textoVueltasInfo != null) { float anguloMostrado = Mathf.Abs(anguloTotalRemovido); anguloMostrado = Mathf.Min(anguloMostrado, anguloObjetivoRemover); textoVueltasInfo.text = $"Removiendo: {anguloMostrado:F0}° / {anguloObjetivoRemover}°"; } }
+    // --- Opcional: Mï¿½todo para actualizar Texto (si lo prefieres) ---
+    // void ActualizarTextoProgresoRemover() { if (textoVueltasInfo != null) { float anguloMostrado = Mathf.Abs(anguloTotalRemovido); anguloMostrado = Mathf.Min(anguloMostrado, anguloObjetivoRemover); textoVueltasInfo.text = $"Removiendo: {anguloMostrado:F0}ï¿½ / {anguloObjetivoRemover}ï¿½"; } }
 
     // VerificarCompletadoRemover (SIN CAMBIOS)
     void VerificarCompletadoRemover() { if (estadoActual != EstadoCaldero.Removiendo) return; if (anguloTotalRemovido <= -anguloObjetivoRemover) { FinalizarMinijuegoRemover(true); } }
 
-    // FinalizarMinijuegoRemover (Asegura restauración cursor)
+    // FinalizarMinijuegoRemover (Asegura restauraciï¿½n cursor)
     void FinalizarMinijuegoRemover(bool exito)
     {
         if (estadoActual != EstadoCaldero.Removiendo) return;
-        Debug.Log($"Minijuego terminado. Éxito: {exito}");
+        Debug.Log($"Minijuego terminado. Ã‰xito: {exito}");
         estadoActual = exito ? EstadoCaldero.PocionLista : EstadoCaldero.RemovidoFallido;
 
         // Detener sonido, ocultar elementos (igual)
@@ -196,21 +204,21 @@ public class Caldero : MonoBehaviour
         // if (textoVueltasInfo != null) textoVueltasInfo.gameObject.SetActive(false);
         if (barraProgresoCircular != null) { barraProgresoCircular.gameObject.SetActive(false); if (fondoBarraProgreso != null) fondoBarraProgreso.SetActive(false); }
         if (cursorEnJuegoUI != null) cursorEnJuegoUI.gameObject.SetActive(false);
-        // Restaurar Cursor, Cámara, Jugador (igual)
+        // Restaurar Cursor, Cï¿½mara, Jugador (igual)
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto); Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false;
         if (camaraMinijuego != null) camaraMinijuego.gameObject.SetActive(false);
         if (controladorJugador != null && controladorJugador.camaraJugador != null) controladorJugador.camaraJugador.gameObject.SetActive(true);
         if (controladorJugador != null) { controladorJugador.RestaurarRotacionAlmacenada(); }
         if (controladorJugador != null) controladorJugador.HabilitarMovimiento(true);
 
-        // Lógica post-minijuego
+        // Lï¿½gica post-minijuego
         if (exito)
         {
-            Debug.Log("¡Poción lista!");
-            if (interaccionJugador) interaccionJugador.MostrarNotificacion("¡Poción lista! (E)");
+            Debug.Log("Â¡PociÃ³n lista!");
+            if (interaccionJugador) interaccionJugador.MostrarNotificacion("Â¡PociÃ³n lista! (E)");
             ReproducirSonidoCaldero(sonidoPocionLista);
 
-            // --- LÓGICA ACTUALIZAR MATERIAL CALDERO CON LOGS ---
+            // --- LÃ“GICA ACTUALIZAR MATERIAL CALDERO CON LOGS ---
             Material materialAAplicar = materialPocionDesconocida;
             string nombreRecetaDebug = "Desconocida";
             PedidoPocionData recetaEncontrada = null; // Inicializar a null
@@ -219,7 +227,7 @@ public class Caldero : MonoBehaviour
             {
                 recetaEncontrada = catalogoRecetas.BuscarRecetaPorIngredientes(ingredientesActuales);
 
-                // --- LOG 1: QUÉ RECETA SE ENCONTRÓ ---
+                // --- LOG 1: QUÃ‰ RECETA SE ENCONTRÃ“ ---
                 if (recetaEncontrada != null)
                 {
                     nombreRecetaDebug = recetaEncontrada.nombreResultadoPocion;
@@ -235,32 +243,73 @@ public class Caldero : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Caldero - No se encontró receta para esta combinación.");
+                    Debug.Log("Caldero - No se encontrÃ³ receta para esta combinaciÃ³n.");
                 }
                 // --- FIN LOG 1 ---
 
             }
-            else { Debug.LogError("¡Catalogo de Recetas no asignado en Caldero!"); }
+            else { Debug.LogError("Â¡Catalogo de Recetas no asignado en Caldero!"); }
 
-            // --- LOG 2: QUÉ MATERIAL SE VA A APLICAR ---
-            Debug.Log($"Caldero - Material final a aplicar: {(materialAAplicar != null ? materialAAplicar.name : "NINGUNO (Usando Desconocido o Falló)")}");
+            // --- LOG 2: QUÃ‰ MATERIAL SE VA A APLICAR ---
+            Debug.Log($"Caldero - Material final a aplicar: {(materialAAplicar != null ? materialAAplicar.name : "NINGUNO (Usando Desconocido o FallÃ³)")}");
             // --- FIN LOG 2 ---
 
             ActualizarMaterialLiquido(materialAAplicar); // Aplica el material al caldero
-            // --- FIN LÓGICA ACTUALIZAR MATERIAL ---
 
+            // --- NUEVO: Guardar la pociÃ³n creada ---
+            if (ingredientesActuales != null && ingredientesActuales.Count > 0)
+                ultimaPocionCreada = new List<DatosIngrediente>(ingredientesActuales);
+            else
+                ultimaPocionCreada = null;
+            // --- FIN NUEVO ---
         }
         else
         { // Fallo
-            Debug.Log("¡Mezcla fallida!"); if (interaccionJugador) interaccionJugador.MostrarNotificacion("¡Mezcla fallida!"); ReproducirSonidoCaldero(sonidoPocionFallida); ReiniciarCaldero();
+            Debug.Log("Â¡Mezcla fallida!");
+            if (interaccionJugador) interaccionJugador.MostrarNotificacion("Â¡Mezcla fallida!");
+            ReproducirSonidoCaldero(sonidoPocionFallida);
+            ReiniciarCaldero();
+            ultimaPocionCreada = null; // --- NUEVO: vacÃ­a la pociÃ³n tambiÃ©n en fallo ---
         }
     }
 
-    // --- Métodos Auxiliares (SIN CAMBIOS) ---
+    // --- Mï¿½todos Auxiliares (SIN CAMBIOS) ---
     void ReproducirSonidoCaldero(AudioClip clip) { if (audioSourceCaldero != null && clip != null) { audioSourceCaldero.PlayOneShot(clip); } }
     public bool EstaPocionLista() { return estadoActual == EstadoCaldero.PocionLista; }
-    public DatosIngrediente[] RecogerPocion() { if (estadoActual == EstadoCaldero.PocionLista) { DatosIngrediente[] c = ingredientesActuales.ToArray(); ReiniciarCaldero(); return c; } return null; }
+    public DatosIngrediente[] RecogerPocion()
+    {
+        if (estadoActual == EstadoCaldero.PocionLista)
+        {
+            DatosIngrediente[] c = ingredientesActuales.ToArray();
+            ReiniciarCaldero();
+            ultimaPocionCreada = null; // <-- AÃ±adido: limpia la Ãºltima pociÃ³n creada al recogerla
+            return c;
+        }
+        return null;
+    }
     public void ReiniciarCaldero() { ingredientesActuales.Clear(); estadoActual = EstadoCaldero.Ocioso; if (materialLiquidoVacio != null) { ActualizarMaterialLiquido(materialLiquidoVacio); } Debug.Log("Caldero reiniciado."); if (audioSourceCaldero != null && audioSourceCaldero.isPlaying && audioSourceCaldero.clip == sonidoRemoverBucle) { audioSourceCaldero.Stop(); audioSourceCaldero.loop = false; } }
-    public void ActualizarMaterialLiquido(Material nuevoMaterial) { if (rendererLiquidoCaldero == null) return; if (nuevoMaterial == null) return; Material[] mats = rendererLiquidoCaldero.materials; if (indiceMaterialLiquido >= 0 && indiceMaterialLiquido < mats.Length) { mats[indiceMaterialLiquido] = Instantiate(nuevoMaterial); rendererLiquidoCaldero.materials = mats; } else { Debug.LogError($"Índice ({indiceMaterialLiquido}) fuera de rango ({mats.Length})", this.gameObject); } }
+    public void ActualizarMaterialLiquido(Material nuevoMaterial) { if (rendererLiquidoCaldero == null) return; if (nuevoMaterial == null) return; Material[] mats = rendererLiquidoCaldero.materials; if (indiceMaterialLiquido >= 0 && indiceMaterialLiquido < mats.Length) { mats[indiceMaterialLiquido] = Instantiate(nuevoMaterial); rendererLiquidoCaldero.materials = mats; } else { Debug.LogError($"ï¿½ndice ({indiceMaterialLiquido}) fuera de rango ({mats.Length})", this.gameObject); } }
+
+    // --- NUEVO: MÃ©todo para obtener y consumir la Ãºltima pocion creada ---
+    public List<DatosIngrediente> ObtenerYConsumirUltimaPocion()
+    {
+        if (ultimaPocionCreada == null || ultimaPocionCreada.Count == 0)
+            return null;
+        var resultado = new List<DatosIngrediente>(ultimaPocionCreada);
+        ultimaPocionCreada = null;
+        return resultado;
+    }
+
+    // --- NUEVO: Saber si hay pociÃ³n lista para entregar ---
+    public bool HayPocionListaParaEntregar()
+    {
+        return ultimaPocionCreada != null && ultimaPocionCreada.Count > 0;
+    }
+
+    // Alias para compatibilidad con InteraccionJugador
+    public bool AgregarIngrediente(DatosIngrediente ingrediente)
+    {
+        return AnadirIngrediente(ingrediente);
+    }
 
 } // Fin de la clase

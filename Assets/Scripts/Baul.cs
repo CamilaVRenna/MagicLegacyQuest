@@ -67,7 +67,7 @@ public class Baul : MonoBehaviour
                 string item = objetosBaul[selectedIndex];
                 if (InventoryManager.Instance != null)
                 {
-                    InventoryManager.Instance.AddItem(item);
+                    InventoryManager.Instance.AddItemByName(item);
                     UIMessageManager.Instance?.MostrarMensaje($"Sacaste del baúl: {item}");
                     objetosBaul.RemoveAt(selectedIndex);
                     selectedIndex = -1;
@@ -115,5 +115,10 @@ public class Baul : MonoBehaviour
     private void Start()
     {
         CargarBaul();
+    }
+
+    public void AbrirOCerrarBaul()
+    {
+        OnMouseDown(); // Reutiliza la lógica existente para alternar el baúl
     }
 }
