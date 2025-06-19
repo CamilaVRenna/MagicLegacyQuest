@@ -114,8 +114,17 @@ public class InteraccionJugador : MonoBehaviour
                         DatosFrasco frasco = InventoryManager.Instance.todosLosFrascos.Find(f => f.nombreItem == stack.nombre);
                         if (frasco != null)
                         {
-                            itemSostenido = frasco;
-                            tipoItemSostenido = TipoItem.FrascoVacio; // O FrascoLleno según lógica
+                            // Si el nombre es exactamente "FrascoLleno", es un frasco lleno
+                            if (stack.nombre == "FrascoLleno")
+                            {
+                                itemSostenido = frasco;
+                                tipoItemSostenido = TipoItem.FrascoLleno;
+                            }
+                            else
+                            {
+                                itemSostenido = frasco;
+                                tipoItemSostenido = TipoItem.FrascoVacio;
+                            }
                         }
                         else
                         {
@@ -340,13 +349,24 @@ void InteractuarConFuenteIngredientes()
         if (npcMiradoActual.TryGetComponent<NPCComprador>(out NPCComprador clienteTienda))
         {
             if (clienteTienda.EstaEsperandoAtencion()) clienteTienda.IniciarPedidoYTimer();
-            else if (clienteTienda.EstaEsperandoEntrega() && tipoItemSostenido == TipoItem.FrascoLleno)
-            {
-                if (contenidoFrascoLleno != null) { clienteTienda.IntentarEntregarPocion(contenidoFrascoLleno); LimpiarItemSostenido(); }
-                else MostrarNotificacion("Error interno frasco.", -1f, true);
-            }
+            // --- NUEVO: Entrega directa desde el caldero ---
             else if (clienteTienda.EstaEsperandoEntrega())
-                MostrarNotificacion("Necesitas la poción que pidió.", -1f, true);
+            {
+                // Buscar caldero en la escena
+                Caldero caldero = FindObjectOfType<Caldero>();
+                if (caldero != null && caldero.HayPocionListaParaEntregar())
+                {
+                    var pocion = caldero.ObtenerYConsumirUltimaPocion();
+                    if (pocion != null)
+                    {
+                        clienteTienda.IntentarEntregarPocion(pocion);
+                        MostrarNotificacion("¡Entregaste la poción al cliente!", 2f, false);
+                        caldero.ReiniciarCaldero(); // <-- Limpia el caldero después de entregar
+                        return;
+                    }
+                }
+                MostrarNotificacion("Prepara una poción en el caldero para entregar.", -1f, true);
+            }
             else MostrarNotificacion("Parece ocupado ahora mismo...", 2f, false);
         }
         else if (npcMiradoActual.TryGetComponent<NPCVendedor>(out NPCVendedor vendedor))
@@ -434,6 +454,45 @@ void InteractuarConFuenteIngredientes()
             }
         }
 
+        // --- NUEVO: Agregar al caldero si hay slot seleccionado y el caldero está cerca ---
+        if (InventoryManager.Instance != null)
+        {
+            int selIdx = InventoryManager.Instance.GetSelectedIndex();
+            // Si el slot seleccionado es válido y está vacío (no hay stack), no hacemos nada
+            if (selIdx >= 0 && selIdx < InventoryManager.Instance.items.Count)
+            {
+                var stack = InventoryManager.Instance.items[selIdx];
+                if (stack == null || string.IsNullOrEmpty(stack.nombre) || stack.cantidad <= 0)
+                {
+                    // Slot vacío, no agregamos nada al caldero
+                    MostrarNotificacion("Selecciona un slot válido para agregar al caldero.", 2f, true);
+                    return;
+                }
+            }
+        }
+
+        // --- Lógica para agregar al caldero si está cerca y hay slot seleccionado ---
+        if (calderoMiradoActual != null && ingredienteRecolectableMirado != null)
+        {
+            DatosIngrediente ing = ingredienteRecolectableMirado.datosIngrediente;
+            if (ing != null)
+            {
+                bool agregado = calderoMiradoActual.AgregarIngrediente(ing);
+                if (agregado)
+                {
+                    MostrarNotificacion($"Agregado {ing.nombreIngrediente} al caldero.", 2f, false);
+                    ingredienteRecolectableMirado.Recolectar();
+                    return;
+                }
+                else
+                {
+                    MostrarNotificacion("No se pudo agregar al caldero.", 2f, true);
+                    return;
+                }
+            }
+        }
+
+        // --- Si no hay caldero cerca, recolecta normalmente ---
         if (tipoItemSostenido == TipoItem.Nada)
         {
             // Agrega la imagen al inventario visual
@@ -441,7 +500,7 @@ void InteractuarConFuenteIngredientes()
             {
                 var datos = ingredienteRecolectableMirado.datosIngrediente;
                 //InventoryManager.Instance.AddItemVisual(datos.icono, -1); // <-- slotIndex -1
-                //InventoryManager.Instance.AddItem(datos.nombreIngrediente); // <-- Asegura que usa el nombre correcto
+                InventoryManager.Instance.AddItem(datos.nombreIngrediente); // <-- Asegura que usa el nombre correcto
             }
             ingredienteRecolectableMirado.Recolectar();
         }
@@ -569,6 +628,26 @@ void InteractuarConFuenteIngredientes()
                     materialAplicar = recetaEncontrada.materialResultado;
             }
         }
+
+        // --- NUEVO: Agregar el frasco lleno al inventario ---
+        if (InventoryManager.Instance != null)
+        {
+            // Puedes usar un nombre genérico o uno específico según tu lógica
+            string nombreFrascoLleno = "FrascoLleno";
+            InventoryManager.Instance.AddItem(nombreFrascoLleno);
+
+            // Selecciona el slot recién agregado (último)
+            int idx = InventoryManager.Instance.items.FindIndex(i => i.nombre == nombreFrascoLleno);
+            if (idx >= 0)
+            {
+                // Selecciona el slot del frasco lleno
+                typeof(InventoryManager).GetField("selectedIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    ?.SetValue(InventoryManager.Instance, idx);
+            }
+            // Actualiza la UI
+            InventoryManager.Instance.ActualizarUIVisual(null, null);
+        }
+        // --- FIN NUEVO ---
 
         if (panelItemSostenido != null)
         {

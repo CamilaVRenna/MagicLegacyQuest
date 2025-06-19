@@ -63,6 +63,14 @@ public class InventoryManager : MonoBehaviour
 
         UIMessageManager.Instance?.MostrarMensaje("Agregado al inventario: " + item);
         ActualizarUIVisual(slots, cantidadTexts);
+
+        // --- NUEVO: Selecciona automáticamente el slot recién agregado si es un frasco lleno ---
+        if (item == "FrascoLleno")
+        {
+            selectedIndex = items.FindIndex(i => i.nombre == item);
+            ActualizarSeleccionVisual();
+        }
+        // --- FIN NUEVO ---
     }
 
     public void AddItemByName(string item)
@@ -131,24 +139,28 @@ public class InventoryManager : MonoBehaviour
 
     public void ActualizarUIVisual(Image[] slots, Text[] cantidadTexts)
     {
-        SetVisualReferences(slots, cantidadTexts);
+        // Solo actualizar referencias si no son null
+        if (slots != null) this.slots = slots;
+        if (cantidadTexts != null) this.cantidadTexts = cantidadTexts;
 
-        for (int i = 0; i < slots.Length; i++)
+        if (this.slots == null) return;
+
+        for (int i = 0; i < this.slots.Length; i++)
         {
             if (i < items.Count)
             {
                 Sprite icono = BuscarIconoPorNombre(items[i].nombre);
-                slots[i].sprite = icono;
-                slots[i].enabled = true;
-                if (cantidadTexts != null && i < cantidadTexts.Length)
-                    cantidadTexts[i].text = items[i].cantidad > 1 ? items[i].cantidad.ToString() : "";
+                this.slots[i].sprite = icono;
+                this.slots[i].enabled = true;
+                if (this.cantidadTexts != null && i < this.cantidadTexts.Length)
+                    this.cantidadTexts[i].text = items[i].cantidad > 1 ? items[i].cantidad.ToString() : "";
             }
             else
             {
-                slots[i].sprite = null;
-                slots[i].enabled = false;
-                if (cantidadTexts != null && i < cantidadTexts.Length)
-                    cantidadTexts[i].text = "";
+                this.slots[i].sprite = null;
+                this.slots[i].enabled = false;
+                if (this.cantidadTexts != null && i < this.cantidadTexts.Length)
+                    this.cantidadTexts[i].text = "";
             }
         }
 
@@ -180,7 +192,7 @@ public class InventoryManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
-                if (slots[i].sprite != null && i < items.Count)
+                if (slots[i].sprite != null && i < items.Count && items[i].cantidad > 0)
                 {
                     selectedIndex = i;
                     UIMessageManager.Instance?.MostrarMensaje($"Seleccionaste: {items[selectedIndex].nombre}");
@@ -190,6 +202,16 @@ public class InventoryManager : MonoBehaviour
                     selectedIndex = -1;
                     UIMessageManager.Instance?.MostrarMensaje("Slot vacío.");
                 }
+                ActualizarSeleccionVisual();
+            }
+        }
+        // --- NUEVO: Si el usuario presiona un número mayor que la cantidad de items, deselecciona ---
+        for (int i = items.Count; i < slots.Length; i++)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+            {
+                selectedIndex = -1;
+                UIMessageManager.Instance?.MostrarMensaje("Slot vacío.");
                 ActualizarSeleccionVisual();
             }
         }
@@ -237,20 +259,23 @@ public class InventoryManager : MonoBehaviour
             }
         }
     }
+private void ActualizarSeleccionVisual()
+{
+    if (slots == null) return;
 
-    private void ActualizarSeleccionVisual()
+    for (int i = 0; i < slots.Length; i++)
     {
-        if (slots == null) return;
-        for (int i = 0; i < slots.Length; i++)
+        if (i == selectedIndex && slots[i].sprite != null)
         {
-            if (i == selectedIndex && slots[i].sprite != null)
-            {
-                slots[i].color = Color.Lerp(Color.white, Color.yellow, 0.25f);
-            }
-            else
-            {
-                slots[i].color = Color.white;
-            }
+            // Blanco brillante para el slot seleccionado
+            slots[i].color = new Color(1f, 1f, 1f, 1f); // blanco puro y opaco
+        }
+        else
+        {
+            // Blanco más opaco para los demás (como si estuvieran deshabilitados)
+            slots[i].color = new Color(0.7f, 0.7f, 0.7f, 1f); // gris claro
         }
     }
+}
+
 }

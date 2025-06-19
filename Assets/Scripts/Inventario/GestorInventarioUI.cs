@@ -13,4 +13,12 @@ public class InventoryUI : MonoBehaviour
             InventoryManager.Instance.ActualizarUIVisual(slots, cantidadTexts);
         }
     }
+
+    private void OnEnable()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.ActualizarUIVisual(slots, cantidadTexts);
+        }
+    }
 }

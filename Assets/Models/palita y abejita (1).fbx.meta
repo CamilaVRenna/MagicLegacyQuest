@@ -29,6 +29,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Material.006
     second: {fileID: 2100000, guid: 135ce75de0e36e14ba3548c3de390a44, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: texturaabeja
+    second: {fileID: 2800000, guid: bd89141eb318e144b9c241744f2a2b19, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

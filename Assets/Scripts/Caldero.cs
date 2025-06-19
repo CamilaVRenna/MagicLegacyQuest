@@ -63,6 +63,9 @@ public class Caldero : MonoBehaviour
     private AudioSource audioSourceCaldero;
     private Vector3 offsetAgarreLocal; // <<--- NUEVO: Guarda d�nde agarramos la cuchara (localmente)
 
+    // --- NUEVO: Guardar la última poción creada ---
+    private List<DatosIngrediente> ultimaPocionCreada = null;
+
     void Start()
     {
         controladorJugador = FindObjectOfType<ControladorJugador>();
@@ -87,7 +90,12 @@ public class Caldero : MonoBehaviour
 
     void Update()
     {
+        // Cambia la tecla de E a R para iniciar el minijuego de remover
         if (estadoActual == EstadoCaldero.Removiendo) { ManejarEntradaRemover(); }
+        else if (estadoActual == EstadoCaldero.ListoParaRemover && Input.GetKeyDown(KeyCode.R))
+        {
+            IntentarIniciarRemovido();
+        }
     }
 
     // AnadirIngrediente, IntentarIniciarRemovido (SIN CAMBIOS)
@@ -186,7 +194,7 @@ public class Caldero : MonoBehaviour
     void FinalizarMinijuegoRemover(bool exito)
     {
         if (estadoActual != EstadoCaldero.Removiendo) return;
-        Debug.Log($"Minijuego terminado. �xito: {exito}");
+        Debug.Log($"Minijuego terminado. Éxito: {exito}");
         estadoActual = exito ? EstadoCaldero.PocionLista : EstadoCaldero.RemovidoFallido;
 
         // Detener sonido, ocultar elementos (igual)
@@ -206,11 +214,11 @@ public class Caldero : MonoBehaviour
         // L�gica post-minijuego
         if (exito)
         {
-            Debug.Log("�Poci�n lista!");
-            if (interaccionJugador) interaccionJugador.MostrarNotificacion("�Poci�n lista! (E)");
+            Debug.Log("¡Poción lista!");
+            if (interaccionJugador) interaccionJugador.MostrarNotificacion("¡Poción lista! (E)");
             ReproducirSonidoCaldero(sonidoPocionLista);
 
-            // --- L�GICA ACTUALIZAR MATERIAL CALDERO CON LOGS ---
+            // --- LÓGICA ACTUALIZAR MATERIAL CALDERO CON LOGS ---
             Material materialAAplicar = materialPocionDesconocida;
             string nombreRecetaDebug = "Desconocida";
             PedidoPocionData recetaEncontrada = null; // Inicializar a null
@@ -219,7 +227,7 @@ public class Caldero : MonoBehaviour
             {
                 recetaEncontrada = catalogoRecetas.BuscarRecetaPorIngredientes(ingredientesActuales);
 
-                // --- LOG 1: QU� RECETA SE ENCONTR� ---
+                // --- LOG 1: QUÉ RECETA SE ENCONTRÓ ---
                 if (recetaEncontrada != null)
                 {
                     nombreRecetaDebug = recetaEncontrada.nombreResultadoPocion;
@@ -235,33 +243,68 @@ public class Caldero : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Caldero - No se encontr� receta para esta combinaci�n.");
+                    Debug.Log("Caldero - No se encontró receta para esta combinación.");
                 }
                 // --- FIN LOG 1 ---
 
             }
-            else { Debug.LogError("�Catalogo de Recetas no asignado en Caldero!"); }
+            else { Debug.LogError("¡Catalogo de Recetas no asignado en Caldero!"); }
 
-            // --- LOG 2: QU� MATERIAL SE VA A APLICAR ---
-            Debug.Log($"Caldero - Material final a aplicar: {(materialAAplicar != null ? materialAAplicar.name : "NINGUNO (Usando Desconocido o Fall�)")}");
+            // --- LOG 2: QUÉ MATERIAL SE VA A APLICAR ---
+            Debug.Log($"Caldero - Material final a aplicar: {(materialAAplicar != null ? materialAAplicar.name : "NINGUNO (Usando Desconocido o Falló)")}");
             // --- FIN LOG 2 ---
 
             ActualizarMaterialLiquido(materialAAplicar); // Aplica el material al caldero
-            // --- FIN L�GICA ACTUALIZAR MATERIAL ---
 
+            // --- NUEVO: Guardar la poción creada ---
+            if (ingredientesActuales != null && ingredientesActuales.Count > 0)
+                ultimaPocionCreada = new List<DatosIngrediente>(ingredientesActuales);
+            else
+                ultimaPocionCreada = null;
+            // --- FIN NUEVO ---
         }
         else
         { // Fallo
-            Debug.Log("�Mezcla fallida!"); if (interaccionJugador) interaccionJugador.MostrarNotificacion("�Mezcla fallida!"); ReproducirSonidoCaldero(sonidoPocionFallida); ReiniciarCaldero();
+            Debug.Log("¡Mezcla fallida!");
+            if (interaccionJugador) interaccionJugador.MostrarNotificacion("¡Mezcla fallida!");
+            ReproducirSonidoCaldero(sonidoPocionFallida);
+            ReiniciarCaldero();
+            ultimaPocionCreada = null; // --- NUEVO: vacía la poción también en fallo ---
         }
     }
 
     // --- M�todos Auxiliares (SIN CAMBIOS) ---
     void ReproducirSonidoCaldero(AudioClip clip) { if (audioSourceCaldero != null && clip != null) { audioSourceCaldero.PlayOneShot(clip); } }
     public bool EstaPocionLista() { return estadoActual == EstadoCaldero.PocionLista; }
-    public DatosIngrediente[] RecogerPocion() { if (estadoActual == EstadoCaldero.PocionLista) { DatosIngrediente[] c = ingredientesActuales.ToArray(); ReiniciarCaldero(); return c; } return null; }
+    public DatosIngrediente[] RecogerPocion()
+    {
+        if (estadoActual == EstadoCaldero.PocionLista)
+        {
+            DatosIngrediente[] c = ingredientesActuales.ToArray();
+            ReiniciarCaldero();
+            ultimaPocionCreada = null; // <-- Añadido: limpia la última poción creada al recogerla
+            return c;
+        }
+        return null;
+    }
     public void ReiniciarCaldero() { ingredientesActuales.Clear(); estadoActual = EstadoCaldero.Ocioso; if (materialLiquidoVacio != null) { ActualizarMaterialLiquido(materialLiquidoVacio); } Debug.Log("Caldero reiniciado."); if (audioSourceCaldero != null && audioSourceCaldero.isPlaying && audioSourceCaldero.clip == sonidoRemoverBucle) { audioSourceCaldero.Stop(); audioSourceCaldero.loop = false; } }
     public void ActualizarMaterialLiquido(Material nuevoMaterial) { if (rendererLiquidoCaldero == null) return; if (nuevoMaterial == null) return; Material[] mats = rendererLiquidoCaldero.materials; if (indiceMaterialLiquido >= 0 && indiceMaterialLiquido < mats.Length) { mats[indiceMaterialLiquido] = Instantiate(nuevoMaterial); rendererLiquidoCaldero.materials = mats; } else { Debug.LogError($"�ndice ({indiceMaterialLiquido}) fuera de rango ({mats.Length})", this.gameObject); } }
+
+    // --- NUEVO: Método para obtener y consumir la última pocion creada ---
+    public List<DatosIngrediente> ObtenerYConsumirUltimaPocion()
+    {
+        if (ultimaPocionCreada == null || ultimaPocionCreada.Count == 0)
+            return null;
+        var resultado = new List<DatosIngrediente>(ultimaPocionCreada);
+        ultimaPocionCreada = null;
+        return resultado;
+    }
+
+    // --- NUEVO: Saber si hay poción lista para entregar ---
+    public bool HayPocionListaParaEntregar()
+    {
+        return ultimaPocionCreada != null && ultimaPocionCreada.Count > 0;
+    }
 
     // Alias para compatibilidad con InteraccionJugador
     public bool AgregarIngrediente(DatosIngrediente ingrediente)

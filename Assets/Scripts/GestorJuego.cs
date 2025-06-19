@@ -56,6 +56,8 @@ public class GestorJuego : MonoBehaviour
 
     void Awake()
     {
+                Cursor.visible = false;
+                        Cursor.lockState = CursorLockMode.Locked;
         if (Instance == null)
         {
             Instance = this;

@@ -89,7 +89,7 @@ public bool IntentarGastarDinero(int cantidad)
     {
         if (textoDia != null && grupoCanvasTextoDia != null)
         {
-            textoDia.text = $"D�A {dia}"; // Mantenemos D�A en may�sculas por estilo
+            textoDia.text = $"DIA {dia}"; // Mantenemos D�A en may�sculas por estilo
             grupoCanvasTextoDia.gameObject.SetActive(true);
             // Llamar a la corutina con nombre traducido
             StartCoroutine(FundidoEntradaSalidaElemento(grupoCanvasTextoDia, duracionFadeDia, tiempoVisibleDia));

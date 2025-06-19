@@ -42,8 +42,8 @@ public class ControladorPausa : MonoBehaviour
                               // Asegurar que el cursor est� bloqueado al inicio de escenas de juego
         if (SceneManager.GetActiveScene().name != "MenuPrincipal") // No bloquear en men� principal
         {
-            //Cursor.lockState = CursorLockMode.Locked;
-           // Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+           Cursor.visible = false;
         }
 
         // Buscar el Volume en la c�mara del jugador
@@ -73,13 +73,16 @@ public class ControladorPausa : MonoBehaviour
         // Detectar la tecla Escape
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (JuegoPausado)
+            if (!JuegoPausado)
             {
-                ReanudarJuego();
+                PausarJuego();
             }
             else
             {
-                PausarJuego();
+                ReanudarJuego();
+                // Asegura que el cursor se oculte y se bloquee al cerrar con Escape
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
         }
     }
@@ -92,9 +95,6 @@ public class ControladorPausa : MonoBehaviour
         if (panelPausa != null)
             panelPausa.SetActive(true);
 
-        //Cursor.lockState = CursorLockMode.None;
-       // Cursor.visible = true;
-
         // Cambiar el perfil de postprocesado si est� asignado
         if (camaraVolume != null && perfilPausa != null)
             camaraVolume.profile = perfilPausa;
@@ -105,17 +105,13 @@ public class ControladorPausa : MonoBehaviour
             jugador.HabilitarMovimiento(false);
     }
 
-    // M�todo p�blico para ser llamado por el bot�n
-    void ReanudarJuego()
+    // Método público para ser llamado por el botón
+    public void ReanudarJuego()
     {
         JuegoPausado = false;
         Time.timeScale = 1f;
-
         if (panelPausa != null)
             panelPausa.SetActive(false);
-
-        //Cursor.lockState = CursorLockMode.Locked;
-      //  Cursor.visible = false;
 
         if (camaraVolume != null && perfilNormal != null)
             camaraVolume.profile = perfilNormal;
@@ -123,6 +119,8 @@ public class ControladorPausa : MonoBehaviour
         ControladorJugador jugador = FindObjectOfType<ControladorJugador>();
         if (jugador != null)
             jugador.HabilitarMovimiento(true);
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
 

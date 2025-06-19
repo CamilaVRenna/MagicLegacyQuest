@@ -9,6 +9,7 @@ TagManager:
   - Puerta
   - ingrediente
   - Recolectable
+  - Limite
   layers:
   - Default
   - TransparentFX
