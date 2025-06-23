@@ -254,19 +254,40 @@ public class NPCTienda : MonoBehaviour
 
         OcultarBocadillo();
 
-        // Irse a la salida
-        if (puntoSalida != null)
+        // En vez de irse, se convierte en NPCComprador
+        var comprador = gameObject.AddComponent<NPCComprador>();
+        comprador.gestor = this.gestor;
+
+        // --- AQUI EL CAMBIO PARA PEDIR LA POCION ESPECÍFICA ---
+        // El usuario indicó que es el "Pedido posible 4", que corresponde al índice 3.
+        int indicePocionEspecifica = 3; 
+
+        if (gestor != null && gestor.listaMaestraPedidos != null && gestor.listaMaestraPedidos.Count > indicePocionEspecifica)
         {
-            destinoActual = puntoSalida.position;
-            enMovimiento = true;
+            PedidoPocionData recetaEspecifica = gestor.listaMaestraPedidos[indicePocionEspecifica];
+            
+            // Creamos una lista solo con esa receta y la configuramos en el comprador.
+            comprador.listaPedidosEspecificos = new System.Collections.Generic.List<PedidoPocionData> { recetaEspecifica };
+            comprador.usarListaEspecifica = true;
         }
         else
         {
-            Debug.LogError("NPCTienda: Falta asignar puntoSalida.");
-            if (gestor != null) gestor.NPCTiendaTermino();
-            Destroy(gameObject);
+            // Si algo falla (no hay gestor, la lista es muy corta), pedirá una aleatoria como antes.
+            Debug.LogWarning("NPCTienda: No se pudo encontrar la receta específica (Pedido 4). Se usará la lista de pedidos aleatorios.");
+            comprador.pedidosPosibles = gestor.listaMaestraPedidos;
         }
+        // --- FIN DEL CAMBIO ---
+
+        comprador.prefabBocadilloUI = this.prefabBocadilloUI;
+        comprador.puntoAnclajeBocadillo = this.puntoAnclajeBocadillo;
+        
+        // Inicia el comportamiento del comprador (moverse a la ventana y esperar)
+        comprador.IrAVentana(puntoVentana.position);
+        
+        // Destruimos este script para que no interfiera.
+        Destroy(this);
     }
+
 
     void MostrarBocadillo(string texto)
     {

@@ -535,6 +535,13 @@ void InteractuarConFuenteIngredientes()
                 }
             }
             UIMessageManager.Instance?.MostrarMensaje("¡Tienda abierta! El día comienza...");
+
+            // DESTRUIR EL CARTEL
+            if (cartelMiradoActual != null)
+            {
+                Destroy(cartelMiradoActual);
+                cartelMiradoActual = null;
+            }
         }
         else
         {

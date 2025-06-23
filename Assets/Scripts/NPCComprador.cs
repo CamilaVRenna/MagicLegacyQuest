@@ -64,6 +64,8 @@ public class NPCComprador : MonoBehaviour
     private int recompensaBase = 20;
     private int penalizacionPorError = 5;
 
+    public PedidoPocionData recetaInvisibilidad; // Arrastra la receta desde el Inspector
+
     void Awake()
     {
         animator = GetComponent<Animator>();
