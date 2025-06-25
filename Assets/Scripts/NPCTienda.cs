@@ -223,7 +223,7 @@ public class NPCTienda : MonoBehaviour
         pasoDialogo = 1;
         yield return new WaitForSeconds(duracionDialogo);
 
-        MostrarBocadillo("Y aquí te dejo unos ingredientes que te servirán para tus pociones, luego los tendrás que recolectar por tu cuenta");
+        MostrarBocadillo("Y aquí te dejo unos ingredientes que te servirán para tus pociones, luego los tendrás que recolectar por tu cuenta (E para recibir)");
         esperandoInteraccion = true; // Espera E de nuevo
     }
 
@@ -232,12 +232,12 @@ public class NPCTienda : MonoBehaviour
         // Añadir 5 de cada ingrediente al stock de la tienda
         if (GestorJuego.Instance != null)
         {
-            if (flor != null) GestorJuego.Instance.AnadirStockTienda(flor, 5);
-            if (hongo != null) GestorJuego.Instance.AnadirStockTienda(hongo, 5);
-            if (hueso != null) GestorJuego.Instance.AnadirStockTienda(hueso, 5);
-            if (miel != null) GestorJuego.Instance.AnadirStockTienda(miel, 5);
-            if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 5);
-            if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 5);
+            if (flor != null) GestorJuego.Instance.AnadirStockTienda(flor, 0);
+            if (hongo != null) GestorJuego.Instance.AnadirStockTienda(hongo, 0);
+            if (hueso != null) GestorJuego.Instance.AnadirStockTienda(hueso, 0);
+            if (miel != null) GestorJuego.Instance.AnadirStockTienda(miel, 0);
+            if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 1);
+            if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 1);
 
             // Mostrar mensaje en la interfaz
             InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
@@ -254,19 +254,42 @@ public class NPCTienda : MonoBehaviour
 
         OcultarBocadillo();
 
-        // Irse a la salida
-        if (puntoSalida != null)
+        // En vez de irse, se convierte en NPCComprador
+        var comprador = gameObject.AddComponent<NPCComprador>();
+        comprador.gestor = this.gestor;
+
+        // --- AQUI EL CAMBIO PARA PEDIR LA POCION ESPECÍFICA ---
+        // El usuario indicó que es el "Pedido posible 4", que corresponde al índice 3.
+        int indicePocionEspecifica = 3; 
+
+        if (gestor != null && gestor.listaMaestraPedidos != null && gestor.listaMaestraPedidos.Count > indicePocionEspecifica)
         {
-            destinoActual = puntoSalida.position;
-            enMovimiento = true;
+            PedidoPocionData recetaEspecifica = gestor.listaMaestraPedidos[indicePocionEspecifica];
+            
+            // Creamos una lista solo con esa receta y la configuramos en el comprador.
+            comprador.listaPedidosEspecificos = new System.Collections.Generic.List<PedidoPocionData> { recetaEspecifica };
+            comprador.usarListaEspecifica = true;
+            InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
+            jugador.MostrarNotificacion("¡Preparale una posion de invisibilidad!", 3f, false);
         }
         else
         {
-            Debug.LogError("NPCTienda: Falta asignar puntoSalida.");
-            if (gestor != null) gestor.NPCTiendaTermino();
-            Destroy(gameObject);
+            // Si algo falla (no hay gestor, la lista es muy corta), pedirá una aleatoria como antes.
+            Debug.LogWarning("NPCTienda: No se pudo encontrar la receta específica (Pedido 4). Se usará la lista de pedidos aleatorios.");
+            comprador.pedidosPosibles = gestor.listaMaestraPedidos;
         }
+        // --- FIN DEL CAMBIO ---
+
+        comprador.prefabBocadilloUI = this.prefabBocadilloUI;
+        comprador.puntoAnclajeBocadillo = this.puntoAnclajeBocadillo;
+        
+        // Inicia el comportamiento del comprador (moverse a la ventana y esperar)
+        comprador.IrAVentana(puntoVentana.position);
+        
+        // Destruimos este script para que no interfiera.
+        Destroy(this);
     }
+
 
     void MostrarBocadillo(string texto)
     {
