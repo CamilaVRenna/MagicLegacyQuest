@@ -426,7 +426,15 @@ void InteractuarConFuenteIngredientes()
     {
         if (GestorJuego.Instance != null)
         {
-            if (GestorJuego.Instance.PuedeDormir()) GestorJuego.Instance.IrADormir();
+            if (GestorJuego.Instance.PuedeDormir()) 
+            {
+                GestorJuego.Instance.IrADormir();
+
+                // REACTIVAR EL CARTEL al dormir
+                GameObject cartel = GameObject.Find("cartel");
+                if (cartel != null)
+                    cartel.SetActive(true);
+            }
             else MostrarNotificacion("Solo puedes dormir por la noche...", 2f, false);
         }
         else Debug.LogError("No se encontró GestorJuego para intentar dormir.");
@@ -536,11 +544,11 @@ void InteractuarConFuenteIngredientes()
             }
             UIMessageManager.Instance?.MostrarMensaje("¡Tienda abierta! El día comienza...");
 
-            // DESTRUIR EL CARTEL
+            // OCULTAR EL CARTEL (no destruir)
             if (cartelMiradoActual != null)
             {
-                Destroy(cartelMiradoActual);
-                cartelMiradoActual = null;
+                cartelMiradoActual.SetActive(false);
+                // cartelMiradoActual = null; // Opcional: mantener referencia
             }
         }
         else

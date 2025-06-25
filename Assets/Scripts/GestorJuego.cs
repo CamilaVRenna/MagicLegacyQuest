@@ -313,6 +313,10 @@ public class GestorJuego : MonoBehaviour
             horaActual = HoraDelDia.Manana;
             GuardarDatos();
             npcsGeneradosHoy = 0;
+
+            // REINICIAR la variable de salida al bosque
+            PuertaCambioEscena.ReiniciarRegistroSalidaBosque();
+
             Debug.Log($"Comenzando D�A {diaActual} - Ma�ana");
             DeducirRenta();
             if (gestorNPCs != null) { gestorNPCs.ReiniciarParaNuevoDia(); }

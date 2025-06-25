@@ -4,120 +4,79 @@ using TMPro; // Necesario si accedes a componentes TextMeshPro directamente
 
 public class PuertaCambioEscena : MonoBehaviour
 {
-    [Header("Configuración Destino")]
+    [Header("Configuraciï¿½n Destino")]
     public string nombreEscenaDestino = "";
-    [Tooltip("Nombre del PuntoSpawn donde aparecerá el jugador en la escena destino.")]
+    [Tooltip("Nombre del PuntoSpawn donde aparecerï¿½ el jugador en la escena destino.")]
     public string nombrePuntoSpawnDestino = "DefaultSpawn"; // <<--- NUEVO
 
     [Header("Indicador Visual (Al Mirar)")]
-    [Tooltip("Texto que se mostrará al mirar la puerta. Ej: 'Ir al bosque'")]
+    [Tooltip("Texto que se mostrarï¿½ al mirar la puerta. Ej: 'Ir al bosque'")]
     public string textoIndicador = "Interactuar"; // Texto personalizable por puerta
-    [Tooltip("Texto que se mostrará al mirar la puerta SI ES DE NOCHE.")] // <<--- NUEVO
+    [Tooltip("Texto que se mostrarï¿½ al mirar la puerta SI ES DE NOCHE.")] // <<--- NUEVO
     public string textoIndicadorNoche = "Mejor no salir de noche, podria aparecer un ogro..."; // <<--- NUEVO
-    [Tooltip("Arrastra aquí el MISMO prefab de Canvas flotante que usas para los ingredientes.")]
+    [Tooltip("Arrastra aquï¿½ el MISMO prefab de Canvas flotante que usas para los ingredientes.")]
     public GameObject prefabCanvasInfo;
     private GameObject canvasInfoActual = null;
-
-
-
-    // Podrías necesitar una referencia específica al TextMeshPro si tu prefab es complejo
-    // private TextMeshProUGUI textoNombreEnCanvas;
-
-
-    // --- Método llamado por InteraccionJugador ---
-    /*public void CambiarEscena()
-    {
-        if (!string.IsNullOrEmpty(nombreEscenaDestino))
-        {
-            Debug.Log($"Cambiando a escena: {nombreEscenaDestino}...");
-
-            // --- Log y Registro de Viaje --- <<<--- AÑADE ESTE BLOQUE COMPLETO AQUÍ
-            // Log para verificar si GestorJuego.Instance existe en este momento
-            Debug.LogWarning($"Puerta.CambiarEscena: Verificando GestorJuego.Instance... ¿Es null? = {GestorJuego.Instance == null}");
-
-            // Intentar registrar el viaje para que GestorJuego actualice la hora
-            if (GestorJuego.Instance != null)
-            {
-                Debug.Log("Puerta.CambiarEscena: GestorJuego.Instance OK. Llamando a RegistrarViaje...");
-                GestorJuego.Instance.RegistrarViaje(nombreEscenaDestino); // <<--- ¡LLAMADA IMPORTANTE AÑADIDA!
-            }
-            else
-            {
-                Debug.LogError("Puerta.CambiarEscena: No se encontró GestorJuego.Instance para registrar el viaje!");
-            }
-            // --- Fin Bloque Añadido ---
-
-            // Ahora sí, cargar la escena con la pantalla de carga
-            GestorJuego.CargarEscenaConPantallaDeCarga(nombreEscenaDestino);
-        }
-        else
-        {
-            Debug.LogError($"¡Puerta ({gameObject.name}) sin 'Nombre Escena Destino'!", this.gameObject);
-        }
-    }*/
-
-    // Dentro de PuertaCambioEscena.cs
-
-    // Dentro de PuertaCambioEscena.cs
+    
     public void CambiarEscena()
     {
-        // Comprobar si hay nombre de escena destino
         if (!string.IsNullOrEmpty(nombreEscenaDestino))
         {
-            // Debug.Log($"Iniciando viaje a escena: {nombreEscenaDestino}..."); // Log opcional
-
-            // --- Registrar Viaje (Versión Final Limpia) ---
-            // Comprobar si la instancia existe antes de usarla (buena práctica)
             if (GestorJuego.Instance != null)
             {
+                if (nombreEscenaDestino.ToLower().Contains("bosque"))
+                {
+                    if (yaSalioAlBosque)
+                    {
+                        InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
+                        if (jugador != null)
+                            jugador.MostrarNotificacion("No puedes volver a salir al bosque.", 3f, false);
+                        else
+                            Debug.Log("No puedes volver a salir al bosque.");
+                        return;
+                    }
+                    else
+                    {
+                        yaSalioAlBosque = true;
+                    }
+                }
                 GestorJuego.Instance.SetSiguientePuntoSpawn(nombrePuntoSpawnDestino); // <<--- NUEVO
                 GestorJuego.Instance.RegistrarViaje(nombreEscenaDestino); // Llamada a GestorJuego para cambiar hora
             }
             else
             {
-                // Este error solo aparecería si algo muy raro pasa con el Singleton
-                Debug.LogError("Puerta.CambiarEscena: No se encontró GestorJuego.Instance para registrar el viaje!");
+                Debug.LogError("Puerta.CambiarEscena: No se encontrï¿½ GestorJuego.Instance para registrar el viaje!");
             }
-            // --- Fin Registro Viaje ---
 
-            // Cargar la escena con pantalla de carga
             GestorJuego.CargarEscenaConPantallaDeCarga(nombreEscenaDestino);
         }
         else // Si no hay nombre de escena destino configurado
         {
-            Debug.LogError($"¡Puerta ({gameObject.name}) sin 'Nombre Escena Destino' configurado en el Inspector!", this.gameObject);
+            Debug.LogError($"ï¿½Puerta ({gameObject.name}) sin 'Nombre Escena Destino' configurado en el Inspector!", this.gameObject);
         }
     }
 
-    // --- NUEVO: Lógica para Mostrar/Ocultar Indicador ---
-
     public void MostrarInformacion()
     {
-        // 1. Salir si no hay prefab asignado
         if (prefabCanvasInfo == null)
         {
             Debug.LogWarning($"Puerta {gameObject.name}: PrefabCanvasInfo no asignado.");
             return;
         }
 
-        // --- 2. ELEGIR TEXTO SEGÚN LA HORA --- <<<--- ESTO DEBE IR AQUÍ ARRIBA
-        string textoAMostrar = textoIndicador; // Texto por defecto (día)
+        string textoAMostrar = textoIndicador; // Texto por defecto (dï¿½a)
         if (GestorJuego.Instance != null && GestorJuego.Instance.horaActual == HoraDelDia.Noche)
         {
             textoAMostrar = textoIndicadorNoche; // Usar texto nocturno si aplica
         }
-        // ----------------------------------
 
-        // 3. Instanciar el canvas si no existe AÚN
         if (canvasInfoActual == null)
         {
-            // Debug.Log($"Instanciando canvas para {gameObject.name}"); // Log Opcional
             Vector3 offset = Vector3.up * 1.0f;
             Collider col = GetComponent<Collider>();
             Vector3 basePos = (col != null) ? col.bounds.center : transform.position;
             canvasInfoActual = Instantiate(prefabCanvasInfo, basePos + offset, Quaternion.identity);
 
-            // Intentar configurar los textos AHORA que sabemos qué texto poner
             InfoCanvasUI uiScript = canvasInfoActual.GetComponent<InfoCanvasUI>();
             if (uiScript != null)
             {
@@ -135,26 +94,22 @@ public class PuertaCambioEscena : MonoBehaviour
             {
                 TextMeshProUGUI tmp = canvasInfoActual.GetComponentInChildren<TextMeshProUGUI>();
                 if (tmp != null) { tmp.text = textoAMostrar; } // <-- Usar textoAMostrar
-                else { Debug.LogWarning($"No se encontró TextMeshProUGUI en prefab para {gameObject.name}."); }
+                else { Debug.LogWarning($"No se encontrï¿½ TextMeshProUGUI en prefab para {gameObject.name}."); }
             }
         }
-
-        // 4. Asegurarse de que esté activo y con el texto correcto (si ya existía o se acaba de crear)
         if (canvasInfoActual != null)
         {
-            // Re-actualizar texto (por si acaso y para asegurar)
             InfoCanvasUI uiScript = canvasInfoActual.GetComponent<InfoCanvasUI>();
             if (uiScript != null && uiScript.textoNombre != null)
             {
                 uiScript.textoNombre.text = textoAMostrar; // <-- Usar textoAMostrar
-                uiScript.textoNombre.gameObject.SetActive(true); // Re-asegurar activación
+                uiScript.textoNombre.gameObject.SetActive(true); // Re-asegurar activaciï¿½n
             }
             else
             {
                 TextMeshProUGUI tmp = canvasInfoActual.GetComponentInChildren<TextMeshProUGUI>();
                 if (tmp != null) tmp.text = textoAMostrar; // <-- Usar textoAMostrar
             }
-            // Activar el canvas principal
             canvasInfoActual.SetActive(true);
         }
     }
@@ -167,7 +122,6 @@ public class PuertaCambioEscena : MonoBehaviour
         }
     }
 
-    // Limpiar el canvas si la puerta se destruye
     void OnDestroy()
     {
         if (canvasInfoActual != null)
@@ -175,5 +129,11 @@ public class PuertaCambioEscena : MonoBehaviour
             Destroy(canvasInfoActual);
         }
     }
-    // --- FIN NUEVA LÓGICA ---
+
+    private static bool yaSalioAlBosque = false;
+
+    public static void ReiniciarRegistroSalidaBosque()
+    {
+        yaSalioAlBosque = false;
+    }
 }

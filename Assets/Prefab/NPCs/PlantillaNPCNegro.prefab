@@ -612,10 +612,6 @@ MonoBehaviour:
   velocidadRotacion: 360
   pedidosPosibles:
   - {fileID: 11400000, guid: 9552513e5f0d50b43afc3b91fdff7a32, type: 2}
-  - {fileID: 11400000, guid: f2aeebf3d5f251e43b798ece2d9e06a5, type: 2}
-  - {fileID: 11400000, guid: 7e27fb3d3842c224695758dfc0c8c979, type: 2}
-  - {fileID: 11400000, guid: 8cdab2b05f433ce43b74fe57603d6fe7, type: 2}
-  - {fileID: 11400000, guid: 697ce57497cbae341b5a00165177cc6e, type: 2}
   - {fileID: 11400000, guid: d236212c116765a478961ffc2780b65d, type: 2}
   listaPedidosEspecificos: []
   usarListaEspecifica: 0
@@ -651,6 +647,8 @@ MonoBehaviour:
   mensajeTiempoAgotado: "\xA1Eres demasiado lento, adi\xF3s!"
   sonidoTiempoAgotado: {fileID: 8300000, guid: 9148d7987c7ce864bbbc44f1785c17a6, type: 3}
   textoTemporizadorCanvas: {fileID: 0}
+  recetaInvisibilidad: {fileID: 0}
+  mostrarBocadilloAlIniciar: 1
 --- !u!95 &9007900382569106868
 Animator:
   serializedVersion: 5

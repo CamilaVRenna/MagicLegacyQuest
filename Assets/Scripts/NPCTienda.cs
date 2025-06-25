@@ -203,7 +203,12 @@ public class NPCTienda : MonoBehaviour
 
     IEnumerator DialogoPalita()
     {
-        MostrarBocadillo("Toma: te servirá para recolectar miel");
+        MostrarBocadillo("Hola! Soy la dueña de la tienda del bosque");
+                yield return new WaitForSeconds(duracionDialogo);
+        MostrarBocadillo("Se que todo esto es nuevo para vos, asi que te voy a ayudar un poco");
+                yield return new WaitForSeconds(duracionDialogo);
+        MostrarBocadillo("Toma, te va a servir para recolectar miel y matar a lasl abejas de los panales");
+        
 
         // Añadir la palita al inventario
         if (InventoryManager.Instance != null)
@@ -212,7 +217,7 @@ public class NPCTienda : MonoBehaviour
             // Mostrar mensaje en la interfaz
             InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
             if (jugador != null)
-                jugador.MostrarNotificacion("¡Has incorporado una palita para matar abejas!", 3f, false);
+                jugador.MostrarNotificacion("¡Has incorporado una flor para matar abejas!", 3f, false);
         }
         else
         {
@@ -223,7 +228,15 @@ public class NPCTienda : MonoBehaviour
         pasoDialogo = 1;
         yield return new WaitForSeconds(duracionDialogo);
 
-        MostrarBocadillo("Y aquí te dejo unos ingredientes que te servirán para tus pociones, luego los tendrás que recolectar por tu cuenta (E para recibir)");
+        MostrarBocadillo("Para armar pociones vas a necesitar ingredientes, te doy algunos gratis");
+                yield return new WaitForSeconds(duracionDialogo);
+        MostrarBocadillo("Cuando te quedes sin, podes juntar más afuera, o comprar en mi tienda");
+                yield return new WaitForSeconds(duracionDialogo);
+        MostrarBocadillo("Ya estan por llegar los clientes, cuando te hagan un pedido, consulta la receta en el libro detrás tuyo");
+                yield return new WaitForSeconds(duracionDialogo);
+        MostrarBocadillo("Cuando tengas los ingredientes, tiralos al caldero, mezclalos y entrega la poción al cliente");
+                yield return new WaitForSeconds(duracionDialogo);
+        MostrarBocadillo("Suerte!");
         esperandoInteraccion = true; // Espera E de nuevo
     }
 
@@ -232,12 +245,9 @@ public class NPCTienda : MonoBehaviour
         // Añadir 5 de cada ingrediente al stock de la tienda
         if (GestorJuego.Instance != null)
         {
-            if (flor != null) GestorJuego.Instance.AnadirStockTienda(flor, 0);
-            if (hongo != null) GestorJuego.Instance.AnadirStockTienda(hongo, 0);
-            if (hueso != null) GestorJuego.Instance.AnadirStockTienda(hueso, 0);
-            if (miel != null) GestorJuego.Instance.AnadirStockTienda(miel, 0);
-            if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 1);
-            if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 1);
+            if (flor != null) GestorJuego.Instance.AnadirStockTienda(flor, 5);
+            if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 5);
+            if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 5);
 
             // Mostrar mensaje en la interfaz
             InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
@@ -254,42 +264,19 @@ public class NPCTienda : MonoBehaviour
 
         OcultarBocadillo();
 
-        // En vez de irse, se convierte en NPCComprador
-        var comprador = gameObject.AddComponent<NPCComprador>();
-        comprador.gestor = this.gestor;
-
-        // --- AQUI EL CAMBIO PARA PEDIR LA POCION ESPECÍFICA ---
-        // El usuario indicó que es el "Pedido posible 4", que corresponde al índice 3.
-        int indicePocionEspecifica = 3; 
-
-        if (gestor != null && gestor.listaMaestraPedidos != null && gestor.listaMaestraPedidos.Count > indicePocionEspecifica)
+        // Irse a la salida
+        if (puntoSalida != null)
         {
-            PedidoPocionData recetaEspecifica = gestor.listaMaestraPedidos[indicePocionEspecifica];
-            
-            // Creamos una lista solo con esa receta y la configuramos en el comprador.
-            comprador.listaPedidosEspecificos = new System.Collections.Generic.List<PedidoPocionData> { recetaEspecifica };
-            comprador.usarListaEspecifica = true;
-            InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
-            jugador.MostrarNotificacion("¡Preparale una posion de invisibilidad!", 3f, false);
+            destinoActual = puntoSalida.position;
+            enMovimiento = true;
         }
         else
         {
-            // Si algo falla (no hay gestor, la lista es muy corta), pedirá una aleatoria como antes.
-            Debug.LogWarning("NPCTienda: No se pudo encontrar la receta específica (Pedido 4). Se usará la lista de pedidos aleatorios.");
-            comprador.pedidosPosibles = gestor.listaMaestraPedidos;
+            Debug.LogError("NPCTienda: Falta asignar puntoSalida.");
+            if (gestor != null) gestor.NPCTiendaTermino();
+            Destroy(gameObject);
         }
-        // --- FIN DEL CAMBIO ---
-
-        comprador.prefabBocadilloUI = this.prefabBocadilloUI;
-        comprador.puntoAnclajeBocadillo = this.puntoAnclajeBocadillo;
-        
-        // Inicia el comportamiento del comprador (moverse a la ventana y esperar)
-        comprador.IrAVentana(puntoVentana.position);
-        
-        // Destruimos este script para que no interfiera.
-        Destroy(this);
     }
-
 
     void MostrarBocadillo(string texto)
     {

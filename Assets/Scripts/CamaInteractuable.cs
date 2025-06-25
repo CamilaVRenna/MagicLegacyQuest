@@ -1,18 +1,18 @@
 using UnityEngine;
-using TMPro; // Asegúrate de tener TextMeshPro en tu proyecto
+using TMPro; // AsegÃºrate de tener TextMeshPro en tu proyecto
 
 public class CamaInteractuable : MonoBehaviour
 {
     [Header("Indicador Visual (Al Mirar)")]
-    [Tooltip("Texto que se mostrará al mirar la cama. Ej: 'Dormir (E)'")]
+    [Tooltip("Texto que se mostrarï¿½ al mirar la cama. Ej: 'Dormir (E)'")]
     public string textoIndicador = "Dormir [E]"; // Texto personalizable
-    [Tooltip("Arrastra aquí el MISMO prefab de Canvas flotante que usas para ingredientes/puertas.")]
+    [Tooltip("Arrastra aquï¿½ el MISMO prefab de Canvas flotante que usas para ingredientes/puertas.")]
     public GameObject prefabCanvasInfo; // <<--- ASIGNAR EN INSPECTOR
     private GameObject canvasInfoActual = null;
 
     // Necesitamos una referencia al GameManager para llamar a GoToSleep
-    // No es estrictamente necesario aquí, ya que la llamada se hace desde InteraccionJugador,
-    // pero podría ser útil para otras lógicas de la cama.
+    // No es estrictamente necesario aquï¿½, ya que la llamada se hace desde InteraccionJugador,
+    // pero podrï¿½a ser ï¿½til para otras lï¿½gicas de la cama.
 
     public void MostrarInformacion()
     {
@@ -54,4 +54,12 @@ public class CamaInteractuable : MonoBehaviour
     }
 
     void OnDestroy() { if (canvasInfoActual != null) { Destroy(canvasInfoActual); } }
+
+    // Llama esto cuando el jugador duerme
+    void Dormir()
+    {
+        // ...existing code de dormir...
+        PuertaCambioEscena.ReiniciarRegistroSalidaBosque();
+        // ...resto del cÃ³digo...
+    }
 }

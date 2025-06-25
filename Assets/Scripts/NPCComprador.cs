@@ -66,6 +66,8 @@ public class NPCComprador : MonoBehaviour
 
     public PedidoPocionData recetaInvisibilidad; // Arrastra la receta desde el Inspector
 
+    public bool mostrarBocadilloAlIniciar = true;
+
     void Awake()
     {
         animator = GetComponent<Animator>();
@@ -419,6 +421,10 @@ public class NPCComprador : MonoBehaviour
         SolicitarPocion();
         tiempoRestanteEspera = tiempoMaximoEspera;
         if (textoTemporizadorActual != null) textoTemporizadorActual.gameObject.SetActive(true);
+        if (mostrarBocadilloAlIniciar)
+        {
+            MostrarBocadillo(ObtenerTextoOriginalPedido(), false);
+        }
     }
 
     public bool EstaEsperandoAtencion() => estadoActual == EstadoNPC.EsperandoAtencion;
