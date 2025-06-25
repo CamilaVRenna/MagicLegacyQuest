@@ -397,10 +397,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4597277395599454237}
   - component: {fileID: 9086007985317955672}
-  - component: {fileID: 5107702442032741854}
+  - component: {fileID: 7291822505191268096}
   - component: {fileID: 8779066981463741564}
   m_Layer: 7
-  m_Name: PlantillaNPCPeaje
+  m_Name: PlantillaNPCBote
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -468,7 +468,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &5107702442032741854
+--- !u!114 &7291822505191268096
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -477,12 +477,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1045434142441624802}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a14fc6a9c81c76346ade71a773fbe778, type: 3}
+  m_Script: {fileID: 11500000, guid: cd59d5c2d9e4dc2458ab50fee7f82d25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objetoBloqueador: {fileID: 0}
-  textoFlotante: {fileID: 3584552760721027586}
-  costoPeaje: 15
+  tagJugador: Player
+  texto3D: {fileID: 8614578454441744988}
+  mensaje: "\xA1El bote pronto estar\xE1 terminado! Sigue explorando"
 --- !u!65 &8779066981463741564
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -502,7 +502,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3, y: 3, z: 5}
+  m_Size: {x: 3, y: 4, z: 5}
   m_Center: {x: 0, y: 0, z: 1.3}
 --- !u!1 &1134886046553503982
 GameObject:
@@ -1665,7 +1665,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2953030890100250277
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1674,7 +1674,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3584552760721027586}
   m_LocalRotation: {x: -0, y: -0.9974102, z: -0, w: 0.071923435}
-  m_LocalPosition: {x: 0, y: 0, z: -0.44}
+  m_LocalPosition: {x: 0, y: 0, z: -0.579}
   m_LocalScale: {x: 0.08282429, y: 0.15007235, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1682,7 +1682,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -105.597, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.06, y: 1.11}
+  m_AnchoredPosition: {x: 0.52, y: 1.272}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &1822829668645675236
@@ -1747,7 +1747,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Presione E para pasar
+  m_text: " \"\xA1El bote pronto estar\xE1 terminado!\" Sigue explorando"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1774,14 +1774,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1810,7 +1810,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -1.7842684, w: 2.4808998}
+  m_margin: {x: 0, y: 0, z: -13.3815975, w: 2.4808998}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
