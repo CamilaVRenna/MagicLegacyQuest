@@ -56,6 +56,8 @@ public class GestorJuego : MonoBehaviour
 
     void Awake()
     {
+                Cursor.visible = false;
+                        Cursor.lockState = CursorLockMode.Locked;
         if (Instance == null)
         {
             Instance = this;
@@ -345,7 +347,12 @@ public class GestorJuego : MonoBehaviour
 
             if (gestorUI != null) gestorUI.MostrarInicioDia(diaActual);
 
-            Debug.Log("Secuencia de sue�o completada.");
+            // --- REACTIVAR EL CARTEL ---
+            GameObject cartel = GameObject.Find("cartel");
+            if (cartel != null)
+                cartel.SetActive(true);
+
+            Debug.Log("Secuencia de sueño completada.");
 
         } // Fin del try
         finally

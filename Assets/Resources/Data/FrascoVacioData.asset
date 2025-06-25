@@ -18,3 +18,4 @@ MonoBehaviour:
   materialVacio: {fileID: 2100000, guid: 55c2ee566bc5b7d4bb09a6bf8faff3fe, type: 2}
   materialLleno: {fileID: 2100000, guid: 67cb4b1ca2348f645a03bc7a017510a7, type: 2}
   rotacionEnMano: {x: 0, y: 0, z: 0}
+  imagenInventario: {fileID: 8293281824025765567, guid: b8622e88bdc4cb44e972b5b796867b23, type: 3}

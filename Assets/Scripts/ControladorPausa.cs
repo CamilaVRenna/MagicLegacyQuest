@@ -5,57 +5,57 @@ using UnityEngine.UI;
 
 public class ControladorPausa : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el GameObject PanelPausa desde la jerarquía del prefab del jugador.")]
+    [Tooltip("Arrastra aquï¿½ el GameObject PanelPausa desde la jerarquï¿½a del prefab del jugador.")]
     public GameObject panelPausa; // Referencia al panel UI
 
     [Header("Post Procesado")]
-    [Tooltip("Arrastra aquí el asset del perfil SIN desenfoque.")]
-    public PostProcessProfile perfilNormal; // <<--- Asignar PP_Normal aquí
-    [Tooltip("Arrastra aquí el asset del perfil CON desenfoque.")]
-    public PostProcessProfile perfilPausa; // <<--- Asignar PP_Desenfocado aquí
+    [Tooltip("Arrastra aquï¿½ el asset del perfil SIN desenfoque.")]
+    public PostProcessProfile perfilNormal; // <<--- Asignar PP_Normal aquï¿½
+    [Tooltip("Arrastra aquï¿½ el asset del perfil CON desenfoque.")]
+    public PostProcessProfile perfilPausa; // <<--- Asignar PP_Desenfocado aquï¿½
 
-    private PostProcessVolume camaraVolume; // Referencia al Volume en la cámara
+    private PostProcessVolume camaraVolume; // Referencia al Volume en la cï¿½mara
 
-    // Variable estática para saber si el juego está pausado (accesible desde otros scripts si es necesario)
+    // Variable estï¿½tica para saber si el juego estï¿½ pausado (accesible desde otros scripts si es necesario)
     public static bool JuegoPausado { get; private set; } = false;
 
-    private GameObject canvasPrincipalRef = null; // <<--- AÑADE ESTA LÍNEA
+    private GameObject canvasPrincipalRef = null; // <<--- Aï¿½ADE ESTA Lï¿½NEA
 
     [Header("BotonesEX")]
-    [Tooltip("Arrastra aquí el boton para cargar la partida.")]
+    [Tooltip("Arrastra aquï¿½ el boton para cargar la partida.")]
     public Button botonCargarPartida;
 
     void Start()
     {
-        // Asegurarse de que el panel esté oculto al empezar la escena
+        // Asegurarse de que el panel estï¿½ oculto al empezar la escena
         if (panelPausa != null)
         {
             panelPausa.SetActive(false);
         }
         else
         {
-            Debug.LogError("¡Panel de Pausa no asignado en ControladorPausa!", this.gameObject);
+            Debug.LogError("ï¿½Panel de Pausa no asignado en ControladorPausa!", this.gameObject);
         }
         // Asegurar que el tiempo corra normal al inicio de la escena
         Time.timeScale = 1f;
         JuegoPausado = false; // Resetear estado al cargar escena
-                              // Asegurar que el cursor esté bloqueado al inicio de escenas de juego
-        if (SceneManager.GetActiveScene().name != "MenuPrincipal") // No bloquear en menú principal
+                              // Asegurar que el cursor estï¿½ bloqueado al inicio de escenas de juego
+        if (SceneManager.GetActiveScene().name != "MenuPrincipal") // No bloquear en menï¿½ principal
         {
             Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+           Cursor.visible = false;
         }
 
-        // Buscar el Volume en la cámara del jugador
-        // Asumiendo que este script está en el objeto Jugador raíz
-        Camera cam = GetComponentInChildren<Camera>(); // Busca la cámara hija
+        // Buscar el Volume en la cï¿½mara del jugador
+        // Asumiendo que este script estï¿½ en el objeto Jugador raï¿½z
+        Camera cam = GetComponentInChildren<Camera>(); // Busca la cï¿½mara hija
         if (cam != null)
         {
             camaraVolume = cam.GetComponent<PostProcessVolume>();
         }
         if (camaraVolume == null)
         {
-            Debug.LogError("ControladorPausa no encontró PostProcessVolume en la cámara hija!", gameObject);
+            Debug.LogError("ControladorPausa no encontrï¿½ PostProcessVolume en la cï¿½mara hija!", gameObject);
         }
         else
         {
@@ -73,13 +73,16 @@ public class ControladorPausa : MonoBehaviour
         // Detectar la tecla Escape
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (JuegoPausado)
+            if (!JuegoPausado)
             {
-                ReanudarJuego();
+                PausarJuego();
             }
             else
             {
-                PausarJuego();
+                ReanudarJuego();
+                // Asegura que el cursor se oculte y se bloquee al cerrar con Escape
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
         }
     }
@@ -92,10 +95,7 @@ public class ControladorPausa : MonoBehaviour
         if (panelPausa != null)
             panelPausa.SetActive(true);
 
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        // Cambiar el perfil de postprocesado si está asignado
+        // Cambiar el perfil de postprocesado si estï¿½ asignado
         if (camaraVolume != null && perfilPausa != null)
             camaraVolume.profile = perfilPausa;
 
@@ -105,17 +105,13 @@ public class ControladorPausa : MonoBehaviour
             jugador.HabilitarMovimiento(false);
     }
 
-    // Método público para ser llamado por el botón
-    void ReanudarJuego()
+    // MÃ©todo pÃºblico para ser llamado por el botÃ³n
+    public void ReanudarJuego()
     {
         JuegoPausado = false;
         Time.timeScale = 1f;
-
         if (panelPausa != null)
             panelPausa.SetActive(false);
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
 
         if (camaraVolume != null && perfilNormal != null)
             camaraVolume.profile = perfilNormal;
@@ -123,18 +119,20 @@ public class ControladorPausa : MonoBehaviour
         ControladorJugador jugador = FindObjectOfType<ControladorJugador>();
         if (jugador != null)
             jugador.HabilitarMovimiento(true);
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
 
-    // Método público para el botón "Menú Principal"
+    // Mï¿½todo pï¿½blico para el botï¿½n "Menï¿½ Principal"
     public void IrMenuPrincipal()
     {
-        Debug.Log("Volviendo al Menú Principal...");
-        // ¡MUY IMPORTANTE! Restaurar la escala de tiempo ANTES de cargar la escena
+        Debug.Log("Volviendo al Menï¿½ Principal...");
+        // ï¿½MUY IMPORTANTE! Restaurar la escala de tiempo ANTES de cargar la escena
         Time.timeScale = 1f;
         JuegoPausado = false; // Resetear estado
 
-        // --- MOSTRAR HUD ANTES DE SALIR (POR SI ACASO) --- <<<--- AÑADIDO
+        // --- MOSTRAR HUD ANTES DE SALIR (POR SI ACASO) --- <<<--- Aï¿½ADIDO
         if (canvasPrincipalRef != null) canvasPrincipalRef.SetActive(true);
         // -------------------------------------------------
 
@@ -143,15 +141,15 @@ public class ControladorPausa : MonoBehaviour
         GestorJuego.CargarEscenaConPantallaDeCarga("MainMenu");
 
         // Usar el cargador de escenas con pantalla de carga
-        // Asegúrate de que el nombre "MainMenu" es correcto
+        // Asegï¿½rate de que el nombre "MainMenu" es correcto
         GestorJuego.CargarEscenaConPantallaDeCarga("MenuPrincipal");
     }
 
-    // Método público para el botón "Salir del Juego"
+    // Mï¿½todo pï¿½blico para el botï¿½n "Salir del Juego"
     public void SalirDelJuego()
     {
         Debug.Log("Saliendo del juego...");
-        // Código para salir (igual que en MainMenuController)
+        // Cï¿½digo para salir (igual que en MainMenuController)
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -159,13 +157,13 @@ public class ControladorPausa : MonoBehaviour
 #endif
     }
 
-    // Llamado por el botón "Cargar Partida" del menú de pausa
+    // Llamado por el botï¿½n "Cargar Partida" del menï¿½ de pausa
     public void BotonCargarPartidaPresionado()
     {
-        Debug.Log("Cargando último guardado (Reiniciando día)...");
+        Debug.Log("Cargando ï¿½ltimo guardado (Reiniciando dï¿½a)...");
         Time.timeScale = 1f;
         JuegoPausado = false;
-        // Recargar la escena actual hará que GestorJuego.CargarDatos se ejecute
+        // Recargar la escena actual harï¿½ que GestorJuego.CargarDatos se ejecute
         GestorJuego.CargarEscenaConPantallaDeCarga(SceneManager.GetActiveScene().name);
     }
 

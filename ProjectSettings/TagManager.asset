@@ -8,6 +8,8 @@ TagManager:
   - Caldero
   - Puerta
   - ingrediente
+  - Recolectable
+  - Limite
   layers:
   - Default
   - TransparentFX

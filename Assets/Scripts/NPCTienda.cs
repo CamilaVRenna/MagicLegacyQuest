@@ -27,15 +27,20 @@ public class NPCTienda : MonoBehaviour
     public DatosIngrediente pluma;
     public DatosIngrediente mariposa;
 
+    private Animator animator;
+    private bool mirandoVentana = false;
+
     private int pasoDialogo = 0; // 0: espera E para palita, 1: espera E para ingredientes, 2: se va
 
     void Start()
     {
+        animator = GetComponent<Animator>();
         // Comienza moviéndose a la ventana
         if (puntoVentana != null)
         {
             destinoActual = puntoVentana.position;
             enMovimiento = true;
+
         }
         else
         {
@@ -47,23 +52,52 @@ public class NPCTienda : MonoBehaviour
     {
         if (enMovimiento)
         {
+            animator?.SetBool("Caminata", true);
+            animator?.SetBool("Idle", false);
+            mirandoVentana = false;
             MoverHaciaDestino();
         }
-        else if (esperandoInteraccion)
+        else
         {
-            if (Input.GetKeyDown(KeyCode.E) && JugadorCerca())
+            animator?.SetBool("Idle", true);
+            animator?.SetBool("Caminata", false);
+            GirarHaciaVentana();
+            if (esperandoInteraccion)
             {
-                esperandoInteraccion = false;
-                if (pasoDialogo == 0)
+                if (Input.GetKeyDown(KeyCode.E) && JugadorCerca())
                 {
-                    StartCoroutine(DialogoPalita());
-                }
-                else if (pasoDialogo == 1)
-                {
-                    StartCoroutine(DialogoIngredientes());
+                    esperandoInteraccion = false;
+                    if (pasoDialogo == 0)
+                    {
+                        StartCoroutine(DialogoPalita());
+                    }
+                    else if (pasoDialogo == 1)
+                    {
+                        StartCoroutine(DialogoIngredientes());
+                    }
                 }
             }
         }
+    }
+
+    void GirarHaciaVentana()
+    {
+        // Usar el punto de mirada del gestor, igual que NPCComprador
+        if (mirandoVentana || gestor == null || gestor.puntoMiradaVentana == null) return;
+        Vector3 dir = gestor.puntoMiradaVentana.position - transform.position;
+        Vector3 dirHoriz = new Vector3(dir.x, 0, dir.z);
+        if (dirHoriz.sqrMagnitude > 0.001f)
+        {
+            Quaternion rotObj = Quaternion.LookRotation(dirHoriz);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotObj, velocidadRotacion * Time.deltaTime);
+            if (Quaternion.Angle(transform.rotation, rotObj) < 1.0f)
+            {
+                transform.rotation = rotObj;
+                mirandoVentana = true;
+                // Debug.Log($"{gameObject.name} terminó de girar hacia la ventana.");
+            }
+        }
+        else mirandoVentana = true;
     }
 
     void MoverHaciaDestino()
@@ -91,6 +125,7 @@ public class NPCTienda : MonoBehaviour
         {
             transform.position = destinoActual;
             enMovimiento = false;
+            mirandoVentana = false; // <--- IMPORTANTE: igual que NPCComprador
 
             if (!yaEntrego)
             {
@@ -173,7 +208,7 @@ public class NPCTienda : MonoBehaviour
         // Añadir la palita al inventario
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.AddItem("palita");
+            InventoryManager.Instance.AddItemByName("palita");
             // Mostrar mensaje en la interfaz
             InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
             if (jugador != null)
@@ -188,7 +223,7 @@ public class NPCTienda : MonoBehaviour
         pasoDialogo = 1;
         yield return new WaitForSeconds(duracionDialogo);
 
-        MostrarBocadillo("Y aquí te dejo unos ingredientes que te servirán para tus pociones, luego los tendrás que recolectar por tu cuenta");
+        MostrarBocadillo("Y aquí te dejo unos ingredientes que te servirán para tus pociones, luego los tendrás que recolectar por tu cuenta (E para recibir)");
         esperandoInteraccion = true; // Espera E de nuevo
     }
 
@@ -197,12 +232,12 @@ public class NPCTienda : MonoBehaviour
         // Añadir 5 de cada ingrediente al stock de la tienda
         if (GestorJuego.Instance != null)
         {
-            if (flor != null) GestorJuego.Instance.AnadirStockTienda(flor, 5);
-            if (hongo != null) GestorJuego.Instance.AnadirStockTienda(hongo, 5);
-            if (hueso != null) GestorJuego.Instance.AnadirStockTienda(hueso, 5);
-            if (miel != null) GestorJuego.Instance.AnadirStockTienda(miel, 5);
-            if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 5);
-            if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 5);
+            if (flor != null) GestorJuego.Instance.AnadirStockTienda(flor, 0);
+            if (hongo != null) GestorJuego.Instance.AnadirStockTienda(hongo, 0);
+            if (hueso != null) GestorJuego.Instance.AnadirStockTienda(hueso, 0);
+            if (miel != null) GestorJuego.Instance.AnadirStockTienda(miel, 0);
+            if (pluma != null) GestorJuego.Instance.AnadirStockTienda(pluma, 1);
+            if (mariposa != null) GestorJuego.Instance.AnadirStockTienda(mariposa, 1);
 
             // Mostrar mensaje en la interfaz
             InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
@@ -219,19 +254,42 @@ public class NPCTienda : MonoBehaviour
 
         OcultarBocadillo();
 
-        // Irse a la salida
-        if (puntoSalida != null)
+        // En vez de irse, se convierte en NPCComprador
+        var comprador = gameObject.AddComponent<NPCComprador>();
+        comprador.gestor = this.gestor;
+
+        // --- AQUI EL CAMBIO PARA PEDIR LA POCION ESPECÍFICA ---
+        // El usuario indicó que es el "Pedido posible 4", que corresponde al índice 3.
+        int indicePocionEspecifica = 3; 
+
+        if (gestor != null && gestor.listaMaestraPedidos != null && gestor.listaMaestraPedidos.Count > indicePocionEspecifica)
         {
-            destinoActual = puntoSalida.position;
-            enMovimiento = true;
+            PedidoPocionData recetaEspecifica = gestor.listaMaestraPedidos[indicePocionEspecifica];
+            
+            // Creamos una lista solo con esa receta y la configuramos en el comprador.
+            comprador.listaPedidosEspecificos = new System.Collections.Generic.List<PedidoPocionData> { recetaEspecifica };
+            comprador.usarListaEspecifica = true;
+            InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
+            jugador.MostrarNotificacion("¡Preparale una posion de invisibilidad!", 3f, false);
         }
         else
         {
-            Debug.LogError("NPCTienda: Falta asignar puntoSalida.");
-            if (gestor != null) gestor.NPCTiendaTermino();
-            Destroy(gameObject);
+            // Si algo falla (no hay gestor, la lista es muy corta), pedirá una aleatoria como antes.
+            Debug.LogWarning("NPCTienda: No se pudo encontrar la receta específica (Pedido 4). Se usará la lista de pedidos aleatorios.");
+            comprador.pedidosPosibles = gestor.listaMaestraPedidos;
         }
+        // --- FIN DEL CAMBIO ---
+
+        comprador.prefabBocadilloUI = this.prefabBocadilloUI;
+        comprador.puntoAnclajeBocadillo = this.puntoAnclajeBocadillo;
+        
+        // Inicia el comportamiento del comprador (moverse a la ventana y esperar)
+        comprador.IrAVentana(puntoVentana.position);
+        
+        // Destruimos este script para que no interfiera.
+        Destroy(this);
     }
+
 
     void MostrarBocadillo(string texto)
     {

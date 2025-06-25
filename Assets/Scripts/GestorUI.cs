@@ -10,10 +10,12 @@ public class GestorUI : MonoBehaviour
     public TextMeshProUGUI textoDinero;
     public Image iconoMonedaDinero;
     public Sprite spriteMoneda;
+    private int dineroActual = 50; // Dinero actual del jugador
+public int DineroActual => dineroActual; // Propiedad para consultar desde otros scripts
 
-    [Header("UI Feedback Día y Dinero")]
+    [Header("UI Feedback Dï¿½a y Dinero")]
     public TextMeshProUGUI textoDia;
-    [Tooltip("CanvasGroup del texto del día para controlar su alfa (fade).")] // Tooltips opcionales
+    [Tooltip("CanvasGroup del texto del dï¿½a para controlar su alfa (fade).")] // Tooltips opcionales
     public CanvasGroup grupoCanvasTextoDia; // Nombre de variable cambiado
     public float duracionFadeDia = 1.0f;
     public float tiempoVisibleDia = 2.0f;
@@ -25,7 +27,7 @@ public class GestorUI : MonoBehaviour
     public float duracionFadeCambioDinero = 0.5f;
     public float tiempoVisibleCambioDinero = 1.5f;
 
-    [Header("UI Fundido Transición")] // Encabezado traducido
+    [Header("UI Fundido Transiciï¿½n")] // Encabezado traducido
     [Tooltip("Una Imagen UI de color negro que cubra toda la pantalla.")]
     public Image panelFundidoNegro; // Nombre de variable cambiado
     public float duracionFundidoNegro = 0.75f; // Nombre de variable cambiado
@@ -41,34 +43,53 @@ public class GestorUI : MonoBehaviour
             panelFundidoNegro.gameObject.SetActive(false); // Inactivo
         }
 
-        // Asignar sprite moneda (sin cambios lógicos)
+        // Asignar sprite moneda (sin cambios lï¿½gicos)
         if (iconoMonedaDinero != null && spriteMoneda != null) iconoMonedaDinero.sprite = spriteMoneda;
         if (iconoMonedaCambio != null && spriteMoneda != null) iconoMonedaCambio.sprite = spriteMoneda;
     }
 
-    // --- Actualización UI ---
+    // --- Actualizaciï¿½n UI ---
 
-    // Nombre de método cambiado
+    // Nombre de mï¿½todo cambiado
     public void ActualizarUIDinero(int cantidad)
+{
+    dineroActual = cantidad;
+
+    if (textoDinero != null)
     {
-        if (textoDinero != null)
-        {
-            textoDinero.text = cantidad.ToString();
-        }
-        if (iconoMonedaDinero != null && textoDinero != null)
-        {
-            iconoMonedaDinero.enabled = true;
-        }
+        textoDinero.text = cantidad.ToString();
     }
+    if (iconoMonedaDinero != null && textoDinero != null)
+    {
+        iconoMonedaDinero.enabled = true;
+    }
+}
+
+public bool IntentarGastarDinero(int cantidad)
+{
+    if (dineroActual >= cantidad)
+    {
+        dineroActual -= cantidad;
+        ActualizarUIDinero(dineroActual);
+        MostrarCambioDinero(-cantidad); // Efecto visual
+        return true;
+    }
+    else
+    {
+        Debug.Log("No hay suficiente dinero.");
+        // Opcional: mostrar feedback visual o sonido de error
+        return false;
+    }
+}
 
     // --- Efectos Visuales ---
 
-    // Nombre de método cambiado
+    // Nombre de mï¿½todo cambiado
     public void MostrarInicioDia(int dia)
     {
         if (textoDia != null && grupoCanvasTextoDia != null)
         {
-            textoDia.text = $"DÍA {dia}"; // Mantenemos DÍA en mayúsculas por estilo
+            textoDia.text = $"DIA {dia}"; // Mantenemos Dï¿½A en mayï¿½sculas por estilo
             grupoCanvasTextoDia.gameObject.SetActive(true);
             // Llamar a la corutina con nombre traducido
             StartCoroutine(FundidoEntradaSalidaElemento(grupoCanvasTextoDia, duracionFadeDia, tiempoVisibleDia));
@@ -79,7 +100,7 @@ public class GestorUI : MonoBehaviour
         } // Log de error
     }
 
-    // Nombre de método cambiado
+    // Nombre de mï¿½todo cambiado
     public void MostrarCambioDinero(int cantidad)
     {
         if (textoCambioDinero != null && grupoCanvasCambioDinero != null && iconoMonedaCambio != null)
@@ -93,8 +114,8 @@ public class GestorUI : MonoBehaviour
         }
     }
 
-    // Nombre de método cambiado
-    public IEnumerator FundidoANegro() // Corutina pública para ser llamada desde GestorJuego
+    // Nombre de mï¿½todo cambiado
+    public IEnumerator FundidoANegro() // Corutina pï¿½blica para ser llamada desde GestorJuego
     {
         Debug.Log("Iniciando Fundido a Negro..."); // Mensaje traducido
         if (panelFundidoNegro == null) yield break;
@@ -105,8 +126,8 @@ public class GestorUI : MonoBehaviour
         Debug.Log("Fundido a Negro Completo."); // Mensaje traducido
     }
 
-    // Nombre de método cambiado
-    public IEnumerator FundidoDesdeNegro() // Corutina pública
+    // Nombre de mï¿½todo cambiado
+    public IEnumerator FundidoDesdeNegro() // Corutina pï¿½blica
     {
         Debug.Log("Iniciando Fundido desde Negro..."); // Mensaje traducido
         if (panelFundidoNegro == null) yield break;
@@ -120,7 +141,7 @@ public class GestorUI : MonoBehaviour
 
     // --- Corutinas Auxiliares ---
 
-    // Nombre de método y parámetros cambiados
+    // Nombre de mï¿½todo y parï¿½metros cambiados
     private IEnumerator FundidoEntradaSalidaElemento(CanvasGroup gc, float durFade, float durVisible)
     {
         // Fade In
@@ -147,7 +168,7 @@ public class GestorUI : MonoBehaviour
         gc.alpha = 0f;
     }
 
-    // Nombre de método y parámetros cambiados
+    // Nombre de mï¿½todo y parï¿½metros cambiados
     private IEnumerator FundidoAlfaElemento(Image imagen, float alfaInicio, float alfaFinal, float duracion)
     {
         float temporizador = 0f; // Variable renombrada

@@ -1,27 +1,27 @@
 using UnityEngine;
-using TMPro; // <<--- A—ADE ESTO
+using TMPro; // <<--- AÔøΩADE ESTO
 
 public class FuenteFrascos : MonoBehaviour
 {
-    [Tooltip("Arrastra aquÌ el asset 'DatosFrasco' que define este tipo de frasco.")]
+    [Tooltip("Arrastra aquÔøΩ el asset 'DatosFrasco' que define este tipo de frasco.")]
     public DatosFrasco datosFrasco;
 
-    [Tooltip("Cu·ntos frascos hay disponibles inicialmente en esta fuente.")]
+    [Tooltip("CuÔøΩntos frascos hay disponibles inicialmente en esta fuente.")]
     public int cantidad = 10;
 
-    // --- AÒadido: UI de InformaciÛn Flotante ---
-    [Header("UI InformaciÛn (Opcional)")]
-    [Tooltip("Arrastra aquÌ el MISMO prefab de Canvas que usas para los ingredientes.")]
-    public GameObject prefabCanvasInfo; // <<--- A—ADIDO
-    private GameObject canvasInfoActual = null; // <<--- A—ADIDO
+    // --- AÔøΩadido: UI de InformaciÔøΩn Flotante ---
+    [Header("UI InformaciÔøΩn (Opcional)")]
+    [Tooltip("Arrastra aquÔøΩ el MISMO prefab de Canvas que usas para los ingredientes.")]
+    public GameObject prefabCanvasInfo; // <<--- AÔøΩADIDO
+    private GameObject canvasInfoActual = null; // <<--- AÔøΩADIDO
     // -------------------------------------------
 
-    // --- AÒadido: Mostrar/Ocultar InformaciÛn ---
+    // --- AÔøΩadido: Mostrar/Ocultar InformaciÔøΩn ---
     public void MostrarInformacion()
     {
         if (datosFrasco == null) return; // Salir si no hay datos
 
-        // Si no tenemos canvas, crÈalo y config˙ralo
+        // Si no tenemos canvas, crÔøΩalo y configÔøΩralo
         if (canvasInfoActual == null && prefabCanvasInfo != null)
         {
             // Debug.Log($"INSTANCIANDO canvas para frasco: {gameObject.name}"); // Debug opcional
@@ -39,10 +39,10 @@ public class FuenteFrascos : MonoBehaviour
             }
         }
 
-        // Aseg˙rate de que estÈ activo (sea nuevo o existente)
+        // AsegÔøΩrate de que estÔøΩ activo (sea nuevo o existente)
         if (canvasInfoActual != null)
         {
-            // Re-actualiza la cantidad por si cambiÛ mientras no mir·bamos
+            // Re-actualiza la cantidad por si cambiÔøΩ mientras no mirÔøΩbamos
             InfoCanvasUI uiScript = canvasInfoActual.GetComponent<InfoCanvasUI>();
             if (uiScript != null && uiScript.textoCantidad != null)
             {
@@ -73,13 +73,13 @@ public class FuenteFrascos : MonoBehaviour
     {
         if (datosFrasco == null)
         {
-            Debug.LogError("°FuenteFrascos no tiene asignado un DatosFrasco!", this.gameObject);
+            Debug.LogError("¬°FuenteFrascos no tiene asignado un DatosFrasco!", this.gameObject);
             return null;
         }
         if (cantidad > 0)
         {
             cantidad--;
-            // Actualizar UI flotante si la tienes y est· visible
+            // Actualizar UI flotante si la tienes y estÔøΩ visible
             if (canvasInfoActual != null && canvasInfoActual.activeSelf)
             {
                 InfoCanvasUI uiScript = canvasInfoActual.GetComponent<InfoCanvasUI>();
@@ -88,12 +88,14 @@ public class FuenteFrascos : MonoBehaviour
                     uiScript.textoCantidad.text = $"Quedan: {cantidad}";
                 }
             }
+            // AGREGA ESTA L√çNEA para sumar el frasco al inventario con el nombre limpio
+            InventoryManager.Instance?.AddItem(datosFrasco.nombreItem.Trim());
             Debug.Log($"Recogido {datosFrasco.nombreItem}. Quedan: {cantidad}");
             return datosFrasco;
         }
         else
         {
-            Debug.Log($"°No quedan m·s {datosFrasco.nombreItem}!");
+            Debug.Log($"¬°No quedan m√°s {datosFrasco.nombreItem}!");
             return null;
         }
     }

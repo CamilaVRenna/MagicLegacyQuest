@@ -43,6 +43,7 @@ public class InteraccionJugador : MonoBehaviour
     private PuertaCambioEscena puertaMiradaActual = null;
     private CamaInteractuable camaMiradaActual = null;
     private IngredienteRecolectable ingredienteRecolectableMirado = null;
+    private GameObject cartelMiradoActual = null; // NUEVO
 
     public CatalogoRecetas catalogoRecetas;
     public Material materialPocionDesconocida;
@@ -51,6 +52,10 @@ public class InteraccionJugador : MonoBehaviour
 
     public TextMeshProUGUI textoInventario; // Arrástralo desde el inspector
     private bool inventarioVisible = false;
+
+    private bool tiendaAbierta = false;
+    private bool esperandoConfirmacionCerrarTienda = false;
+    private Baul baulMiradoActual = null; 
 
     void Start()
     {
@@ -73,24 +78,66 @@ public class InteraccionJugador : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q) && tipoItemSostenido != TipoItem.Nada) { ReproducirSonidoJugador(sonidoTirarItem); LimpiarItemSostenido(); }
         if (Input.GetMouseButtonDown(1) && tipoItemSostenido == TipoItem.FrascoLleno) MostrarContenidoFrascoLleno();
 
-        // Mostrar/ocultar inventario al apretar I
-        if (Input.GetKeyDown(KeyCode.I))
+        if (Input.GetKeyDown(KeyCode.Q) && fuenteIngredientesMirada != null)
         {
-            inventarioVisible = !inventarioVisible;
-            if (textoInventario != null)
+            string nombreIngrediente = fuenteIngredientesMirada.datosIngrediente.nombreIngrediente;
+            int cantidadJugador = InventoryManager.Instance.ContarItem(nombreIngrediente);
+            if (cantidadJugador > 0)
             {
-                if (inventarioVisible)
+                fuenteIngredientesMirada.DevolverIngrediente(); // <-- Quitar argumento
+                // Muestra mensaje o actualiza UI
+            }
+            else
+            {
+                // Opcional: mensaje de que no tienes ese ingrediente
+            }
+        }
+
+        // Sincroniza el item sostenido con el slot seleccionado del inventario
+        if (InventoryManager.Instance != null)
+        {
+            int selIdx = InventoryManager.Instance.GetSelectedIndex();
+            if (selIdx >= 0 && selIdx < InventoryManager.Instance.items.Count)
+            {
+                var stack = InventoryManager.Instance.items[selIdx];
+                if (stack != null && (itemSostenido == null || (itemSostenido is DatosIngrediente di && di.nombreIngrediente != stack.nombre)))
                 {
-                    string contenido = (InventoryManager.Instance != null && InventoryManager.Instance.items.Count > 0)
-                        ? "Inventario:\n- " + string.Join("\n- ", InventoryManager.Instance.items)
-                        : "Inventario vacío";
-                    textoInventario.text = contenido;
-                    textoInventario.gameObject.SetActive(true);
+                    // Buscar el ScriptableObject correspondiente
+                    DatosIngrediente ing = InventoryManager.Instance.todosLosIngredientes.Find(i => i.nombreIngrediente == stack.nombre);
+                    if (ing != null)
+                    {
+                        itemSostenido = ing;
+                        tipoItemSostenido = TipoItem.Ingrediente;
+                    }
+                    else
+                    {
+                        DatosFrasco frasco = InventoryManager.Instance.todosLosFrascos.Find(f => f.nombreItem == stack.nombre);
+                        if (frasco != null)
+                        {
+                            // Si el nombre es exactamente "FrascoLleno", es un frasco lleno
+                            if (stack.nombre == "FrascoLleno")
+                            {
+                                itemSostenido = frasco;
+                                tipoItemSostenido = TipoItem.FrascoLleno;
+                            }
+                            else
+                            {
+                                itemSostenido = frasco;
+                                tipoItemSostenido = TipoItem.FrascoVacio;
+                            }
+                        }
+                        else
+                        {
+                            itemSostenido = null;
+                            tipoItemSostenido = TipoItem.Nada;
+                        }
+                    }
                 }
-                else
-                {
-                    textoInventario.gameObject.SetActive(false);
-                }
+            }
+            else if (selIdx == -1)
+            {
+                itemSostenido = null;
+                tipoItemSostenido = TipoItem.Nada;
             }
         }
     }
@@ -128,17 +175,29 @@ public class InteraccionJugador : MonoBehaviour
         {
             puertaMiradaActual.OcultarInformacion();
             puertaMiradaActual = null;
+            esperandoConfirmacionCerrarTienda = false; // Resetea confirmación si deja de mirar la puerta
         }
         if (camaMiradaActual != null && (!golpeoAlgo || objetoGolpeado != camaMiradaActual.gameObject))
         {
             camaMiradaActual.OcultarInformacion();
             camaMiradaActual = null;
         }
+
+        if (baulMiradoActual != null && (!golpeoAlgo || objetoGolpeado != baulMiradoActual.gameObject))
+        {
+            baulMiradoActual = null;
+        }
+
+
         if (ingredienteRecolectableMirado != null && (!golpeoAlgo || objetoGolpeado != ingredienteRecolectableMirado.gameObject))
         {
             ingredienteRecolectableMirado.OcultarInformacion();
             ingredienteRecolectableMirado = null;
         }
+        if (cartelMiradoActual != null && (!golpeoAlgo || objetoGolpeado != cartelMiradoActual)) // NUEVO
+        {
+            cartelMiradoActual = null;
+        } // NUEVO
 
         if (golpeoAlgo)
         {
@@ -159,6 +218,11 @@ public class InteraccionJugador : MonoBehaviour
                 if (objetoGolpeado.TryGetComponent(out LibroRecetasInteractuable libroCtrl)) { libroMiradoActual = libroCtrl; libroCtrl.MostrarInformacion(); return; }
                 if (objetoGolpeado.TryGetComponent(out PuertaCambioEscena puertaCtrl)) { puertaMiradaActual = puertaCtrl; puertaMiradaActual.MostrarInformacion(); return; }
                 if (objetoGolpeado.TryGetComponent(out CamaInteractuable camaCtrl)) { camaMiradaActual = camaCtrl; camaMiradaActual.MostrarInformacion(); }
+                if (objetoGolpeado.TryGetComponent(out Baul baulCtrl))
+                    {
+                        baulMiradoActual = baulCtrl;
+                        return;
+                    }
                 if (objetoGolpeado.TryGetComponent(out IngredienteRecolectable ingRecCtrl))
                 {
                     if (puertaMiradaActual != null) { puertaMiradaActual.OcultarInformacion(); puertaMiradaActual = null; }
@@ -166,6 +230,7 @@ public class InteraccionJugador : MonoBehaviour
                     ingredienteRecolectableMirado = ingRecCtrl;
                     ingredienteRecolectableMirado.MostrarInformacion();
                 }
+                if (objetoGolpeado.name == "cartel") { cartelMiradoActual = objetoGolpeado; return; }
             }
         }
     }
@@ -181,18 +246,65 @@ public class InteraccionJugador : MonoBehaviour
         else if (puertaMiradaActual != null) InteractuarConPuerta();
         else if (camaMiradaActual != null) InteractuarConCama();
         else if (ingredienteRecolectableMirado != null) InteractuarConIngredienteRecolectable();
+        else if (cartelMiradoActual != null) InteractuarConCartel();
+        else if (baulMiradoActual != null) {
+            baulMiradoActual.AbrirOCerrarBaul();
+        }
     }
 
-    void InteractuarConFuenteIngredientes()
+void InteractuarConFuenteIngredientes()
+{
+    if (tipoItemSostenido == TipoItem.Nada)
     {
-        if (tipoItemSostenido == TipoItem.Nada)
+        DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
+        if (r != null)
         {
-            DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
-            if (r != null) EstablecerItemSostenido(r, TipoItem.Ingrediente);
-            else MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+            EstablecerItemSostenido(r, TipoItem.Ingrediente);
+            // Ya no agregamos al inventario aquí, lo hace la fuente
         }
-        else MostrarNotificacion("Ya tienes algo en la mano.", -1f, true);
+        else
+        {
+            MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+        }
     }
+    // Permitir agarrar más del mismo ingrediente si ya lo tienes en la mano
+    else if (tipoItemSostenido == TipoItem.Ingrediente && itemSostenido is DatosIngrediente ingActual
+             && fuenteIngredientesMirada.datosIngrediente == ingActual)
+    {
+        DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
+        if (r != null)
+        {
+            // Sumar al inventario lógico y visual
+            //InventoryManager.Instance?.AddItem(ingActual.nombreIngrediente);
+            //InventoryManager.Instance?.AddItemVisual(ingActual.icono, -1); // <-- slotIndex -1
+            // Opcional: feedback visual/sonoro
+            ReproducirSonidoJugador(sonidoRecogerItem);
+        }
+        else
+        {
+            MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+        }
+    }
+    // --- NUEVO: Si tienes otro ingrediente, lo suelta automáticamente y agarra el nuevo ---
+    else if (tipoItemSostenido == TipoItem.Ingrediente && itemSostenido is DatosIngrediente ingActual2
+             && fuenteIngredientesMirada.datosIngrediente != ingActual2)
+    {
+        LimpiarItemSostenido();
+        DatosIngrediente r = fuenteIngredientesMirada.IntentarRecoger();
+        if (r != null)
+        {
+            EstablecerItemSostenido(r, TipoItem.Ingrediente);
+        }
+        else
+        {
+            MostrarNotificacion($"¡No quedan más {fuenteIngredientesMirada.datosIngrediente.nombreIngrediente}!", -1f, true);
+        }
+    }
+    else
+    {
+        MostrarNotificacion("Ya tienes algo en la mano.", -1f, true);
+    }
+}
 
     void InteractuarConFuenteFrascos()
     {
@@ -207,31 +319,29 @@ public class InteraccionJugador : MonoBehaviour
 
     void InteractuarConCaldero()
     {
-        switch (tipoItemSostenido)
+        // Ahora usa el objeto seleccionado del inventario
+        if (InventoryManager.Instance != null)
         {
-            case TipoItem.Ingrediente:
-                if (itemSostenido is DatosIngrediente i && calderoMiradoActual.AnadirIngrediente(i)) LimpiarItemSostenido();
-                break;
-            case TipoItem.FrascoVacio:
-                if (calderoMiradoActual.EstaPocionLista())
+            int selIdx = InventoryManager.Instance.GetSelectedIndex();
+            if (selIdx >= 0 && selIdx < InventoryManager.Instance.items.Count)
+            {
+                var stack = InventoryManager.Instance.items[selIdx];
+                // Buscar el ScriptableObject correspondiente
+                DatosIngrediente ing = InventoryManager.Instance.todosLosIngredientes.Find(i => i.nombreIngrediente == stack.nombre);
+                if (ing != null)
                 {
-                    DatosIngrediente[] c = calderoMiradoActual.RecogerPocion();
-                    if (c != null) LlenarFrascoSostenido(c);
+                    // Agrega el ingrediente seleccionado al caldero
+                    calderoMiradoActual.AgregarIngrediente(ing);
+                    InventoryManager.Instance.RemoveItem(ing.nombreIngrediente, 1);
+                    // Actualiza itemSostenido y tipoItemSostenido
+                    itemSostenido = null;
+                    tipoItemSostenido = TipoItem.Nada;
+                    return;
                 }
-                else if (calderoMiradoActual.estadoActual == Caldero.EstadoCaldero.ListoParaRemover)
-                    MostrarNotificacion("Debes remover la mezcla primero.", -1f, true);
-                else MostrarNotificacion("Caldero vacío o poción no lista.", -1f, true);
-                break;
-            case TipoItem.Nada:
-                if (calderoMiradoActual.estadoActual == Caldero.EstadoCaldero.ListoParaRemover)
-                    calderoMiradoActual.IntentarIniciarRemovido();
-                else if (calderoMiradoActual.EstaPocionLista())
-                    MostrarNotificacion("Necesitas frasco vacío.", -1f, true);
-                break;
-            case TipoItem.FrascoLleno:
-                MostrarNotificacion("Ya tienes una poción.", -1f, true);
-                break;
+                // Si es frasco, lógica similar...
+            }
         }
+        // ...si no hay seleccionado, puedes mostrar mensaje de error...
     }
 
     void InteractuarConNPC()
@@ -239,13 +349,24 @@ public class InteraccionJugador : MonoBehaviour
         if (npcMiradoActual.TryGetComponent<NPCComprador>(out NPCComprador clienteTienda))
         {
             if (clienteTienda.EstaEsperandoAtencion()) clienteTienda.IniciarPedidoYTimer();
-            else if (clienteTienda.EstaEsperandoEntrega() && tipoItemSostenido == TipoItem.FrascoLleno)
-            {
-                if (contenidoFrascoLleno != null) { clienteTienda.IntentarEntregarPocion(contenidoFrascoLleno); LimpiarItemSostenido(); }
-                else MostrarNotificacion("Error interno frasco.", -1f, true);
-            }
+            // --- NUEVO: Entrega directa desde el caldero ---
             else if (clienteTienda.EstaEsperandoEntrega())
-                MostrarNotificacion("Necesitas la poción que pidió.", -1f, true);
+            {
+                // Buscar caldero en la escena
+                Caldero caldero = FindObjectOfType<Caldero>();
+                if (caldero != null && caldero.HayPocionListaParaEntregar())
+                {
+                    var pocion = caldero.ObtenerYConsumirUltimaPocion();
+                    if (pocion != null)
+                    {
+                        clienteTienda.IntentarEntregarPocion(pocion);
+                        MostrarNotificacion("¡Entregaste la poción al cliente!", 2f, false);
+                        caldero.ReiniciarCaldero(); // <-- Limpia el caldero después de entregar
+                        return;
+                    }
+                }
+                MostrarNotificacion("Prepara una poción en el caldero para entregar.", -1f, true);
+            }
             else MostrarNotificacion("Parece ocupado ahora mismo...", 2f, false);
         }
         else if (npcMiradoActual.TryGetComponent<NPCVendedor>(out NPCVendedor vendedor))
@@ -267,17 +388,37 @@ public class InteraccionJugador : MonoBehaviour
 
     void InteractuarConPuerta()
     {
-        if (GestorJuego.Instance != null)
+        if (!esperandoConfirmacionCerrarTienda)
         {
-            if (GestorJuego.Instance.horaActual != HoraDelDia.Noche)
-                puertaMiradaActual.CambiarEscena();
-            else
-                MostrarNotificacion("Será mejor que no salga ahora, podría encontrarme con un troll...", 3f, false);
+            UIMessageManager.Instance?.MostrarMensaje("¿Seguro que quieres salir de la tienda? Pulsa E para confirmar.");
+            esperandoConfirmacionCerrarTienda = true;
         }
         else
         {
-            Debug.LogError("No se encontró GestorJuego al interactuar con la puerta.");
-            MostrarNotificacion("Error del sistema de tiempo.", 2f, true);
+            esperandoConfirmacionCerrarTienda = false;
+            UIMessageManager.Instance?.MostrarMensaje("Saliendo de la tienda...");
+
+            // Desactivar el cartel hasta el próximo día
+            GameObject cartel = GameObject.Find("cartel");
+            if (cartel != null)
+                cartel.SetActive(false);
+
+            // Hacer de noche y bloquear la tienda
+            if (GestorJuego.Instance != null)
+            {
+                GestorJuego.Instance.horaActual = HoraDelDia.Noche;
+                if (GestorJuego.Instance.gestorNPCs != null)
+                {
+                    GestorJuego.Instance.gestorNPCs.tiendaAbierta = false;
+                    GestorJuego.Instance.gestorNPCs.compradoresHabilitados = false;
+                }
+            }
+
+            // Cambiar de escena usando la puerta
+            if (puertaMiradaActual != null)
+            {
+                puertaMiradaActual.CambiarEscena();
+            }
         }
     }
 
@@ -313,12 +454,100 @@ public class InteraccionJugador : MonoBehaviour
             }
         }
 
+        // --- NUEVO: Agregar al caldero si hay slot seleccionado y el caldero está cerca ---
+        if (InventoryManager.Instance != null)
+        {
+            int selIdx = InventoryManager.Instance.GetSelectedIndex();
+            // Si el slot seleccionado es válido y está vacío (no hay stack), no hacemos nada
+            if (selIdx >= 0 && selIdx < InventoryManager.Instance.items.Count)
+            {
+                var stack = InventoryManager.Instance.items[selIdx];
+                if (stack == null || string.IsNullOrEmpty(stack.nombre) || stack.cantidad <= 0)
+                {
+                    // Slot vacío, no agregamos nada al caldero
+                    MostrarNotificacion("Selecciona un slot válido para agregar al caldero.", 2f, true);
+                    return;
+                }
+            }
+        }
+
+        // --- Lógica para agregar al caldero si está cerca y hay slot seleccionado ---
+        if (calderoMiradoActual != null && ingredienteRecolectableMirado != null)
+        {
+            DatosIngrediente ing = ingredienteRecolectableMirado.datosIngrediente;
+            if (ing != null)
+            {
+                bool agregado = calderoMiradoActual.AgregarIngrediente(ing);
+                if (agregado)
+                {
+                    MostrarNotificacion($"Agregado {ing.nombreIngrediente} al caldero.", 2f, false);
+                    ingredienteRecolectableMirado.Recolectar();
+                    return;
+                }
+                else
+                {
+                    MostrarNotificacion("No se pudo agregar al caldero.", 2f, true);
+                    return;
+                }
+            }
+        }
+
+        // --- Si no hay caldero cerca, recolecta normalmente ---
         if (tipoItemSostenido == TipoItem.Nada)
         {
+            // Agrega la imagen al inventario visual
+            if (InventoryManager.Instance != null)
+            {
+                var datos = ingredienteRecolectableMirado.datosIngrediente;
+                //InventoryManager.Instance.AddItemVisual(datos.icono, -1); // <-- slotIndex -1
+                InventoryManager.Instance.AddItem(datos.nombreIngrediente); // <-- Asegura que usa el nombre correcto
+            }
             ingredienteRecolectableMirado.Recolectar();
         }
         else MostrarNotificacion("Tienes las manos llenas para recolectar.", 2f, true);
     }
+
+    void InteractuarConCartel() // NUEVO
+    {
+        if (GestorJuego.Instance != null && GestorJuego.Instance.horaActual == HoraDelDia.Noche)
+        {
+            UIMessageManager.Instance?.MostrarMensaje("La tienda ya está cerrada por hoy. Vuelve mañana.");
+            return;
+        }
+
+        if (!tiendaAbierta)
+        {
+            tiendaAbierta = true;
+            if (GestorJuego.Instance != null && GestorJuego.Instance.gestorNPCs != null)
+            {
+                var gestorNPCs = GestorJuego.Instance.gestorNPCs;
+                gestorNPCs.tiendaAbierta = true;
+
+                // Si NO se genera el NPC Tienda porque ya tenés la palita, habilitá compradores directamente
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasItem("palita"))
+                {
+                    gestorNPCs.compradoresHabilitados = true;
+                }
+                else
+                {
+                    gestorNPCs.compradoresHabilitados = false;
+                    gestorNPCs.GenerarNPCTienda();
+                }
+            }
+            UIMessageManager.Instance?.MostrarMensaje("¡Tienda abierta! El día comienza...");
+
+            // DESTRUIR EL CARTEL
+            if (cartelMiradoActual != null)
+            {
+                Destroy(cartelMiradoActual);
+                cartelMiradoActual = null;
+            }
+        }
+        else
+        {
+            UIMessageManager.Instance?.MostrarMensaje("La tienda ya está abierta.");
+        }
+    } // NUEVO
 
     void EstablecerItemSostenido(ScriptableObject itemData, TipoItem tipo)
     {
@@ -406,6 +635,26 @@ public class InteraccionJugador : MonoBehaviour
                     materialAplicar = recetaEncontrada.materialResultado;
             }
         }
+
+        // --- NUEVO: Agregar el frasco lleno al inventario ---
+        if (InventoryManager.Instance != null)
+        {
+            // Puedes usar un nombre genérico o uno específico según tu lógica
+            string nombreFrascoLleno = "FrascoLleno";
+            InventoryManager.Instance.AddItem(nombreFrascoLleno);
+
+            // Selecciona el slot recién agregado (último)
+            int idx = InventoryManager.Instance.items.FindIndex(i => i.nombre == nombreFrascoLleno);
+            if (idx >= 0)
+            {
+                // Selecciona el slot del frasco lleno
+                typeof(InventoryManager).GetField("selectedIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    ?.SetValue(InventoryManager.Instance, idx);
+            }
+            // Actualiza la UI
+            InventoryManager.Instance.ActualizarUIVisual(null, null);
+        }
+        // --- FIN NUEVO ---
 
         if (panelItemSostenido != null)
         {
