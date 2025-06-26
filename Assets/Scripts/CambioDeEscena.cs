@@ -6,24 +6,43 @@ using System.Collections;
 public class CambioDeEscena : MonoBehaviour
 {
     [SerializeField] private GameObject panel;
+    [SerializeField] private GameObject finalPanel;
 
-    private void OnTriggerEnter(Collider other)
+private void OnTriggerEnter(Collider other)
+{
+    if (other.CompareTag("Player"))
     {
-        if (other.CompareTag("Player"))
+        // Solo permitir entrar si la misión está completa
+        if (GestorJuego.Instance != null && GestorJuego.Instance.misionCompleta)
         {
-            // Marca la flag en GestorJuego
-            if (GestorJuego.Instance != null)
-            {
-                GestorJuego.Instance.interactuoConCueva = true;
-            }
-
-            StartCoroutine(ChangeScene());
+            Debug.Log("fin");
+            finalPanel.SetActive(true);
+            StartCoroutine(FinalizarJuego());
+            // Aquí puedes poner la lógica para cambiar de escena si quieres
         }
+        else
+        {
+            StartCoroutine(ChangeScene());
+            Debug.Log("¡Debes recolectar 3 mieles antes de entrar a la cueva!");
+        }
+    }
+}
+
+    private IEnumerator FinalizarJuego()
+    {
+        yield return new WaitForSeconds(5f);
+        SceneManager.LoadScene("MenuPrincipal");
+        PlayerPrefs.DeleteAll();
+        PlayerPrefs.Save();
     }
 
      IEnumerator ChangeScene()
     {
             panel.gameObject.SetActive(true); 
+            if (GestorJuego.Instance.interactuoConCueva == false) 
+            {
+                GestorJuego.Instance.interactuoConCueva = true;
+            }
             yield return new WaitForSeconds(8f); 
             SceneManager.LoadScene("TiendaDeMagia");
     }

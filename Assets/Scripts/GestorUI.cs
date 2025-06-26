@@ -35,6 +35,7 @@ public TextMeshProUGUI textoMielesRecolectadas; // Texto para mieles recolectada
 
     void Start()
     {
+        
         // Asegurar estado inicial oculto/transparente
         if (grupoCanvasTextoDia != null) grupoCanvasTextoDia.alpha = 0;
         if (grupoCanvasCambioDinero != null) grupoCanvasCambioDinero.alpha = 0;

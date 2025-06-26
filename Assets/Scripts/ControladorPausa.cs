@@ -87,41 +87,47 @@ public class ControladorPausa : MonoBehaviour
         }
     }
 
-    void PausarJuego()
-    {
-        JuegoPausado = true;
-        Time.timeScale = 0f;
+void PausarJuego()
+{
+    JuegoPausado = true;
+    Time.timeScale = 0f;
 
-        if (panelPausa != null)
-            panelPausa.SetActive(true);
+    if (panelPausa != null)
+        panelPausa.SetActive(true);
 
-        // Cambiar el perfil de postprocesado si est� asignado
-        if (camaraVolume != null && perfilPausa != null)
-            camaraVolume.profile = perfilPausa;
+    // Cambiar el perfil de postprocesado si está asignado
+    if (camaraVolume != null && perfilPausa != null)
+        camaraVolume.profile = perfilPausa;
 
-        // Desactivar movimiento del jugador
-        ControladorJugador jugador = FindObjectOfType<ControladorJugador>();
-        if (jugador != null)
-            jugador.HabilitarMovimiento(false);
-    }
+    // Desactivar movimiento del jugador
+    ControladorJugador jugador = FindObjectOfType<ControladorJugador>();
+    if (jugador != null)
+        jugador.HabilitarMovimiento(false);
+
+    // --- HABILITAR CURSOR ---
+    Cursor.lockState = CursorLockMode.None;
+    Cursor.visible = true;
+}
 
     // Método público para ser llamado por el botón
-    public void ReanudarJuego()
-    {
-        JuegoPausado = false;
-        Time.timeScale = 1f;
-        if (panelPausa != null)
-            panelPausa.SetActive(false);
+public void ReanudarJuego()
+{
+    JuegoPausado = false;
+    Time.timeScale = 1f;
+    if (panelPausa != null)
+        panelPausa.SetActive(false);
 
-        if (camaraVolume != null && perfilNormal != null)
-            camaraVolume.profile = perfilNormal;
+    if (camaraVolume != null && perfilNormal != null)
+        camaraVolume.profile = perfilNormal;
 
-        ControladorJugador jugador = FindObjectOfType<ControladorJugador>();
-        if (jugador != null)
-            jugador.HabilitarMovimiento(true);
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
+    ControladorJugador jugador = FindObjectOfType<ControladorJugador>();
+    if (jugador != null)
+        jugador.HabilitarMovimiento(true);
+
+    // --- OCULTAR CURSOR ---
+    Cursor.lockState = CursorLockMode.Locked;
+    Cursor.visible = false;
+}
 
 
     // M�todo p�blico para el bot�n "Men� Principal"

@@ -115,6 +115,7 @@ public class GestorJuego : MonoBehaviour
 
     [Header("Progreso Cueva")]
     public int abejasMatadasCueva = 0;
+    public bool misionCompleta = false;
 
     private Light luzDireccionalPrincipal = null; // <<--- A�ADE ESTA L�NEA
 
@@ -221,6 +222,21 @@ public class GestorJuego : MonoBehaviour
 
         if (gestorUI != null)
         {
+            if (interactuoConCueva) 
+            {
+                            if (misionCompleta)
+            {
+                gestorUI.ActualizarTextoMieles("¡Ya podés ir a la cueva!");
+            }
+            else
+            {
+                gestorUI.ActualizarTextoMieles($"{abejasMatadasCueva}/3 mieles recolectadas");
+            }
+
+            } else 
+            {
+                gestorUI.ActualizarTextoMieles("Mision");
+            }
             Debug.Log("GestorUI encontrado en EscenaCargada. Actualizando UI.");
             gestorUI.ActualizarUIDinero(dineroActual);
 
@@ -250,9 +266,19 @@ public class GestorJuego : MonoBehaviour
     {
         abejasMatadasCueva++;
         if (gestorUI != null)
-            gestorUI.ActualizarTextoMieles($"{abejasMatadasCueva}/3 mieles recolectadas");
+        {
+            if (abejasMatadasCueva >= 3)
+            {
+                gestorUI.ActualizarTextoMieles("¡Ya podés ir a la cueva!");
+                misionCompleta = true;
+            }
+            else
+            {
+                gestorUI.ActualizarTextoMieles($"{abejasMatadasCueva}/3 mieles recolectadas");
+            }
+        }
     }
-    
+
     public void AnadirDinero(int cantidad)
     {
         dineroActual += cantidad;

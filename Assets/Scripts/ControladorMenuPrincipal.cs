@@ -1,24 +1,26 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; // Para cargar escenas
-using UnityEngine.UI;            // Para Button (aunque no lo usemos directamente aquí si asignamos por Inspector)
+using UnityEngine.UI;            // Para Button (aunque no lo usemos directamente aquï¿½ si asignamos por Inspector)
 
 public class ControladorMenuPrincipal : MonoBehaviour
 {
-    [Header("Configuración Escenas")]
+    [Header("Configuraciï¿½n Escenas")]
     [Tooltip("Nombre EXACTO de la escena principal del juego.")]
     public string nombreEscenaJuego = "TiendaDeMagia"; // <-- CAMBIA ESTO si tu escena se llama diferente
 
     [Header("Referencias UI")]
-    [Tooltip("Arrastra aquí el GameObject del Panel de Ayuda.")]
+    [Tooltip("Arrastra aquï¿½ el GameObject del Panel de Ayuda.")]
     public GameObject panelAyuda; // Para activar/desactivar
 
     public Button botonContinuar;
     public Button botonNuevaPartida; // Reemplaza o complementa a BotonJugar
-    public GameObject panelConfirmacionNuevaPartida; // Panel con botones Sí/No
+    public GameObject panelConfirmacionNuevaPartida; // Panel con botones Sï¿½/No
 
-    // Asegúrate de que el panel empieza desactivado desde el editor
+    // Asegï¿½rate de que el panel empieza desactivado desde el editor
     void Start()
     {
+                PlayerPrefs.DeleteAll();
+                        PlayerPrefs.Save();
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -26,19 +28,19 @@ public class ControladorMenuPrincipal : MonoBehaviour
         if (botonContinuar != null) botonContinuar.interactable = hayGuardado;
         if (panelConfirmacionNuevaPartida != null) panelConfirmacionNuevaPartida.SetActive(false);
     }
-    // --- Métodos para los Botones ---
+    // --- Mï¿½todos para los Botones ---
 
     public void BotonJugarPresionado()
     {
         Debug.Log($"Cargando escena: {nombreEscenaJuego}...");
-        // Opcional: Añadir un efecto de fade ANTES de cargar
+        // Opcional: Aï¿½adir un efecto de fade ANTES de cargar
         if (!string.IsNullOrEmpty(nombreEscenaJuego))
         {
             GestorJuego.CargarEscenaConPantallaDeCarga(nombreEscenaJuego);
         }
         else
         {
-            Debug.LogError("¡Nombre de la escena de juego no especificado en MainMenuController!");
+            Debug.LogError("ï¿½Nombre de la escena de juego no especificado en MainMenuController!");
         }
     }
 
@@ -51,17 +53,17 @@ public class ControladorMenuPrincipal : MonoBehaviour
         }
         else
         {
-            Debug.LogError("¡Panel de Ayuda no asignado en MainMenuController!");
+            Debug.LogError("ï¿½Panel de Ayuda no asignado en MainMenuController!");
         }
     }
 
     public void BotonSalirPresionado()
     {
         Debug.Log("Saliendo del juego...");
-        // Si estás en el editor de Unity
+        // Si estï¿½s en el editor de Unity
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-        // Si estás en una build compilada
+        // Si estï¿½s en una build compilada
 #else
         Application.Quit();
 #endif

@@ -207,7 +207,7 @@ public class NPCTienda : MonoBehaviour
                 yield return new WaitForSeconds(duracionDialogo);
         MostrarBocadillo("Se que todo esto es nuevo para vos, asi que te voy a ayudar un poco");
                 yield return new WaitForSeconds(duracionDialogo);
-        MostrarBocadillo("Toma, te va a servir para recolectar miel y matar a lasl abejas de los panales");
+        MostrarBocadillo("Toma, te va a servir para recolectar miel y matar a las abejas de los panales");
         
 
         // Añadir la palita al inventario
