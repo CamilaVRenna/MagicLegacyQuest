@@ -72,6 +72,10 @@ public bool IntentarGastarDinero(int cantidad)
     if (dineroActual >= cantidad)
     {
         dineroActual -= cantidad;
+        // --- SINCRONIZAR CON GESTORJUEGO ---
+        if (GestorJuego.Instance != null)
+            GestorJuego.Instance.dineroActual = dineroActual;
+
         ActualizarUIDinero(dineroActual);
         MostrarCambioDinero(-cantidad); // Efecto visual
         return true;

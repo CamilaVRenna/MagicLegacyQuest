@@ -43,6 +43,9 @@ private void OnTriggerEnter(Collider other)
             {
                 GestorJuego.Instance.interactuoConCueva = true;
             }
+            if (GestorJuego.Instance != null)
+                GestorJuego.Instance.GuardarDatos();
+
             yield return new WaitForSeconds(8f); 
             SceneManager.LoadScene("TiendaDeMagia");
     }

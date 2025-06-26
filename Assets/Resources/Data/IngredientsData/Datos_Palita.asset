@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Datos_Palita
   m_EditorClassIdentifier: 
   nombreIngrediente: palita
-  icono: {fileID: 21300000, guid: 21712f205f026ed4ba9fb7d25071d476, type: 3}
+  icono: {fileID: 21300000, guid: 5f5ca9c2ebb50a24c932c8f85edf8ed8, type: 3}
   prefabModelo3D: {fileID: 4112955051234162344, guid: 9186cc6dd9d9fd745b48d6b85fab607a, type: 3}
   prefabRecolectable: {fileID: 5653174031220002000, guid: 3e6a396daa9186741a6e0b9b1d124928, type: 3}
   rotacionEnMano: {x: 0, y: 90, z: 0}

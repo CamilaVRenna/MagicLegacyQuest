@@ -53,36 +53,41 @@ public GestorUI gestorUI; // Asignalo en el Inspector
             textoInteractuar.SetActive(false);
 
             if (tiendaAbierta)
-                AlternarTienda(); // Cierra la tienda si te alejás
+                AlternarTienda();
         }
     }
 
-    public void ComprarItem(string nombreItem, int precio)
+public void ComprarItem(string nombreItem, int precio, int cantidad)
 {
     if (gestorUI.IntentarGastarDinero(precio))
     {
-        InventoryManager.Instance?.AddItemByName(nombreItem);
-        UIMessageManager.Instance?.MostrarMensaje("¡Compraste: " + nombreItem + "!");
+        if (GestorJuego.Instance != null && InventoryManager.Instance != null)
+        {
+            var datos = InventoryManager.Instance.todosLosIngredientes.Find(i => i.nombreIngrediente == nombreItem);
+            if (datos != null)
+                GestorJuego.Instance.AnadirStockTienda(datos, cantidad);
+        }
+
+        UIMessageManager.Instance?.MostrarMensaje($"¡Compraste: {nombreItem} x{cantidad}! Se llevaron a tu tienda");
     }
     else
     {
-        UIMessageManager.Instance?.MostrarMensaje("No tienes suficiente dinero para " + nombreItem + ".");
+        UIMessageManager.Instance?.MostrarMensaje("No tienes suficiente dinero");
     }
 }
-
-void GenerarBotones()
-{
-    // Lista hardcodeada, podés reemplazarla luego por datos reales
-    string[] nombres = { "Frasco    ", "Palita", "Hueso" };
-    int[] precios = { 10, 5, 15 };
-
-    for (int i = 0; i < nombres.Length; i++)
+    void GenerarBotones()
     {
-        GameObject nuevoBoton = Instantiate(prefabBotonItem, contenedorBotones);
-        BotonItemTienda scriptBoton = nuevoBoton.GetComponent<BotonItemTienda>();
-        scriptBoton.Inicializar(nombres[i], precios[i], this);
+        string[] nombres = { "Huesos de dinosaurio", "Mariposas", "Flores" };
+        int[] precios = { 40, 25, 15 };
+        int[] cantidades = { 5, 5, 5 }; 
+
+        for (int i = 0; i < nombres.Length; i++)
+        {
+            GameObject nuevoBoton = Instantiate(prefabBotonItem, contenedorBotones);
+            BotonItemTienda scriptBoton = nuevoBoton.GetComponent<BotonItemTienda>();
+            scriptBoton.Inicializar(nombres[i], precios[i], cantidades[i], this);
+        }
     }
-}
 
 void LimpiarBotones()
 {

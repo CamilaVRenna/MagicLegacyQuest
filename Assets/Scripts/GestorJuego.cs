@@ -52,6 +52,8 @@ public class GestorJuego : MonoBehaviour
             return;
         }
         ControladorPantallaCarga.escenaACargar = nombreEscenaACargar;
+        if (GestorJuego.Instance != null)
+            GestorJuego.Instance.GuardarDatos();
         SceneManager.LoadScene("PantallaCarga");
     }
 
@@ -414,7 +416,7 @@ public class GestorJuego : MonoBehaviour
         }
     } // Fin de SecuenciaDormir 
 
-    private void GuardarDatos()
+    public void GuardarDatos()
     {
         Debug.LogWarning($"--- GUARDANDO DATOS --- D�a: {diaActual}, Hora: {horaActual}, Dinero: {dineroActual}");
         PlayerPrefs.SetInt("ExisteGuardado", 1);

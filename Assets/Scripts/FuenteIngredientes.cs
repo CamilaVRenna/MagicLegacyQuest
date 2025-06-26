@@ -104,19 +104,18 @@ public class FuenteIngredientes : MonoBehaviour
 }
 
 
-    public void DevolverIngrediente()
+public void DevolverIngrediente()
 {
     if (datosIngrediente == null) return;
     if (GestorJuego.Instance != null && InventoryManager.Instance != null)
     {
         int cantidadEnInventario = InventoryManager.Instance.ContarItem(datosIngrediente.nombreIngrediente);
-        int cantidadADevolver = Mathf.Min(cantidadEnInventario, cantidadEntregadaAlJugador);
+        int cantidadADevolver = cantidadEnInventario; // Permite devolver todo lo que tengas
+
         if (cantidadADevolver > 0)
         {
             InventoryManager.Instance.RemoveItem(datosIngrediente.nombreIngrediente, cantidadADevolver);
-
             GestorJuego.Instance.AnadirStockTienda(datosIngrediente, cantidadADevolver);
-            cantidadEntregadaAlJugador -= cantidadADevolver;
             ActualizarVisuales();
 
             UIMessageManager.Instance?.MostrarMensaje($"Devolviste {cantidadADevolver} {datosIngrediente.nombreIngrediente}(s) a la fuente.");

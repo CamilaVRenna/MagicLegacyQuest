@@ -18,43 +18,46 @@ public class PuertaCambioEscena : MonoBehaviour
     public GameObject prefabCanvasInfo;
     private GameObject canvasInfoActual = null;
     
-    public void CambiarEscena()
+public void CambiarEscena()
+{
+    if (!string.IsNullOrEmpty(nombreEscenaDestino))
     {
-        if (!string.IsNullOrEmpty(nombreEscenaDestino))
+        if (GestorJuego.Instance != null)
         {
-            if (GestorJuego.Instance != null)
+                        // --- AGREGA ESTA LÍNEA ---
+            GestorJuego.Instance.GuardarDatos();
+            if (nombreEscenaDestino.ToLower().Contains("bosque"))
             {
-                if (nombreEscenaDestino.ToLower().Contains("bosque"))
+                if (yaSalioAlBosque)
                 {
-                    if (yaSalioAlBosque)
-                    {
-                        InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
-                        if (jugador != null)
-                            jugador.MostrarNotificacion("No puedes volver a salir al bosque.", 3f, false);
-                        else
-                            Debug.Log("No puedes volver a salir al bosque.");
-                        return;
-                    }
+                    InteraccionJugador jugador = FindObjectOfType<InteraccionJugador>();
+                    if (jugador != null)
+                        jugador.MostrarNotificacion("No puedes volver a salir al bosque.", 3f, false);
                     else
-                    {
-                        yaSalioAlBosque = true;
-                    }
+                        Debug.Log("No puedes volver a salir al bosque.");
+                    return;
                 }
-                GestorJuego.Instance.SetSiguientePuntoSpawn(nombrePuntoSpawnDestino); // <<--- NUEVO
-                GestorJuego.Instance.RegistrarViaje(nombreEscenaDestino); // Llamada a GestorJuego para cambiar hora
+                else
+                {
+                    yaSalioAlBosque = true;
+                }
             }
-            else
-            {
-                Debug.LogError("Puerta.CambiarEscena: No se encontr� GestorJuego.Instance para registrar el viaje!");
-            }
+            GestorJuego.Instance.SetSiguientePuntoSpawn(nombrePuntoSpawnDestino);
+            GestorJuego.Instance.RegistrarViaje(nombreEscenaDestino);
 
-            GestorJuego.CargarEscenaConPantallaDeCarga(nombreEscenaDestino);
         }
-        else // Si no hay nombre de escena destino configurado
+        else
         {
-            Debug.LogError($"�Puerta ({gameObject.name}) sin 'Nombre Escena Destino' configurado en el Inspector!", this.gameObject);
+            Debug.LogError("Puerta.CambiarEscena: No se encontró GestorJuego.Instance para registrar el viaje!");
         }
+
+        GestorJuego.CargarEscenaConPantallaDeCarga(nombreEscenaDestino);
     }
+    else // Si no hay nombre de escena destino configurado
+    {
+        Debug.LogError($"¿Puerta ({gameObject.name}) sin 'Nombre Escena Destino' configurado en el Inspector!", this.gameObject);
+    }
+}
 
     public void MostrarInformacion()
     {
