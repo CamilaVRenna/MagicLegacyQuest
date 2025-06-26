@@ -12,6 +12,7 @@ public class GestorUI : MonoBehaviour
     public Sprite spriteMoneda;
     private int dineroActual = 50; // Dinero actual del jugador
 public int DineroActual => dineroActual; // Propiedad para consultar desde otros scripts
+public TextMeshProUGUI textoMielesRecolectadas; // Texto para mieles recolectadas
 
     [Header("UI Feedback D�a y Dinero")]
     public TextMeshProUGUI textoDia;
@@ -98,6 +99,14 @@ public bool IntentarGastarDinero(int cantidad)
         {
             Debug.LogError("Falta TextoDia o GrupoCanvasTextoDia en GestorUI"); 
         } // Log de error
+    }
+
+    public void ActualizarTextoMieles(string texto)
+    {
+        if (textoMielesRecolectadas != null)
+            textoMielesRecolectadas.text = texto;
+        else
+            Debug.LogWarning("No se asignó textoMielesRecolectadas en GestorUI.");
     }
 
     // Nombre de m�todo cambiado

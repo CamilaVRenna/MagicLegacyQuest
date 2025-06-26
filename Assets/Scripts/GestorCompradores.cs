@@ -241,7 +241,6 @@ public class GestorCompradores : MonoBehaviour
             Destroy(obj);
         }
     }
-    // --- FIN NUEVO ---
 
     [HideInInspector]
     public bool tiendaAbierta = false;

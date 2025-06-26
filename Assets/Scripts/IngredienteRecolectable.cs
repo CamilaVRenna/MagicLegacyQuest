@@ -14,7 +14,7 @@ public class IngredienteRecolectable : MonoBehaviour
     // --- NUEVO: Prefab y lógica de abejas ---
     public GameObject prefabAbeja; // Asigna en el inspector
     public Transform puntoSalidaAbejas; // Opcional, si quieres controlar el punto de aparición
-
+    private int abejasDerrotadas = 0;
     private bool minijuegoAbejasActivo = false;
     private int abejasRestantes = 0;
     private bool minijuegoTerminado = false; // <-- NUEVO
@@ -25,6 +25,7 @@ public class IngredienteRecolectable : MonoBehaviour
 
     public void IniciarMinijuegoAbejas()
     {
+        abejasDerrotadas = 0;
         if (prefabAbeja == null)
         {
             Debug.LogError("No se asignó el prefab de abeja en IngredienteRecolectable.");
@@ -56,10 +57,16 @@ public class IngredienteRecolectable : MonoBehaviour
         if (minijuegoTerminado) return; // <-- NUEVO
 
         abejasRestantes--;
+        abejasDerrotadas++; // Suma una abeja derrotada
+
+        // Actualiza el texto en pantalla
+        if (GestorJuego.Instance != null)
+            GestorJuego.Instance.SumarAbejaMatada();
+
         if (abejasRestantes <= 0)
         {
             minijuegoAbejasActivo = false;
-            minijuegoTerminado = true; // <-- NUEVO
+            minijuegoTerminado = true;
             MostrarMensajeTemporal("¡Has derrotado a todas las abejas y puedes recolectar la miel!");
             Recolectar();
         }

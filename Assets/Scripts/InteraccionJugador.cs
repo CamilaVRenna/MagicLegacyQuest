@@ -57,6 +57,9 @@ public class InteraccionJugador : MonoBehaviour
     private bool esperandoConfirmacionCerrarTienda = false;
     private Baul baulMiradoActual = null; 
 
+    private bool cuevaVisitada = false;
+    private int diaCuevaVisitada = -1;
+
     void Start()
     {
         audioSourceJugador = GetComponent<AudioSource>();
@@ -138,6 +141,17 @@ public class InteraccionJugador : MonoBehaviour
             {
                 itemSostenido = null;
                 tipoItemSostenido = TipoItem.Nada;
+            }
+        }
+
+        // Mensaje especial SOLO el día después de visitar la cueva
+        if (cuevaVisitada && diaCuevaVisitada > 0 && GestorJuego.Instance != null)
+        {
+            if (GestorJuego.Instance.diaActual == diaCuevaVisitada + 1)
+            {
+                Debug.Log("npc mision");
+                // Solo mostrar una vez
+                diaCuevaVisitada = -1000;
             }
         }
     }
@@ -231,6 +245,12 @@ public class InteraccionJugador : MonoBehaviour
                     ingredienteRecolectableMirado.MostrarInformacion();
                 }
                 if (objetoGolpeado.name == "cartel") { cartelMiradoActual = objetoGolpeado; return; }
+                // NUEVO: Detectar la cueva por nombre o tag
+                if (objetoGolpeado.name.ToLower().Contains("cueva") || objetoGolpeado.CompareTag("Cueva"))
+                {
+                    InteractuarConCueva(objetoGolpeado);
+                    return;
+                }
             }
         }
     }
@@ -746,5 +766,20 @@ void InteractuarConFuenteIngredientes()
     {
         if (audioSourceJugador != null && clip != null)
             audioSourceJugador.PlayOneShot(clip);
+    }
+
+    void InteractuarConCueva(GameObject cuevaObj)
+    {
+        if (!cuevaVisitada)
+        {
+            UIMessageManager.Instance?.MostrarMensaje("Has descubierto la entrada a la cueva misteriosa...");
+            cuevaVisitada = true;
+            if (GestorJuego.Instance != null)
+                diaCuevaVisitada = GestorJuego.Instance.diaActual;
+        }
+        else
+        {
+            UIMessageManager.Instance?.MostrarMensaje("Ya conoces esta cueva.");
+        }
     }
 } // Fin de la clase

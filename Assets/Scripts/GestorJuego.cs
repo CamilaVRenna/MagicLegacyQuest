@@ -27,6 +27,7 @@ public class StockDataWrapper
 }
 public class GestorJuego : MonoBehaviour
 {
+    public bool interactuoConCueva = false;
 
     [Header("L�mites Diarios")] // Nuevo Header
     public int limiteNPCsPorDia = 5; // L�mite de NPCs a generar por d�a
@@ -102,6 +103,7 @@ public class GestorJuego : MonoBehaviour
     public AudioClip sonidoGanarDinero;
     public AudioClip sonidoPerderDinero;
     public GestorCompradores gestorNPCs; // <<--- NUEVA REFERENCIA: Asigna el GestorNPCs aqu�
+    public TMPro.TextMeshProUGUI textoMielesRecolectadas; 
 
     [Header("Audio Ambiente")] // Puedes a�adir este encabezado para organizar
     [Tooltip("M�sica o sonido para el MenuPrincipal")]
@@ -110,6 +112,9 @@ public class GestorJuego : MonoBehaviour
     public AudioClip audioDia;      // <<--- A�ADE ESTA L�NEA
     [Tooltip("M�sica o sonido ambiente para la noche (grillos?)")]
     public AudioClip audioNoche;     // <<--- A�ADE ESTA L�NEA
+
+    [Header("Progreso Cueva")]
+    public int abejasMatadasCueva = 0;
 
     private Light luzDireccionalPrincipal = null; // <<--- A�ADE ESTA L�NEA
 
@@ -241,6 +246,13 @@ public class GestorJuego : MonoBehaviour
         }
     }
 
+    public void SumarAbejaMatada()
+    {
+        abejasMatadasCueva++;
+        if (gestorUI != null)
+            gestorUI.ActualizarTextoMieles($"{abejasMatadasCueva}/3 mieles recolectadas");
+    }
+    
     public void AnadirDinero(int cantidad)
     {
         dineroActual += cantidad;
@@ -350,6 +362,16 @@ public class GestorJuego : MonoBehaviour
             else { Debug.LogWarning("SecuenciaDormir: No se encontr� ControladorJugador para habilitar."); }
 
             if (gestorUI != null) gestorUI.MostrarInicioDia(diaActual);
+            if (interactuoConCueva)
+            {
+                Debug.Log("INTERACTUASTE CON LA CUEVA");
+                if (gestorUI != null)
+                    gestorUI.ActualizarTextoMieles("0/3 mieles recolectadas");
+                interactuoConCueva = false;
+            } else 
+            {
+                Debug.Log("Días siguientes");
+            }
 
             // --- REACTIVAR EL CARTEL ---
             GameObject cartel = GameObject.Find("cartel");

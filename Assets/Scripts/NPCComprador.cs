@@ -303,7 +303,7 @@ public class NPCComprador : MonoBehaviour
         }
     }
 
-    void MostrarBocadillo(string texto, bool autoOcultar = false)
+    public void MostrarBocadillo(string texto, bool autoOcultar = false)
     {
         if (coroutineOcultarBocadillo != null)
         {

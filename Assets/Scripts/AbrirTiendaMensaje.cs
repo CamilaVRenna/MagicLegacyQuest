@@ -16,11 +16,6 @@ public class AbrirTiendaMensaje : MonoBehaviour
         {
             textoMensaje.text = mensaje;
             textoMensaje.gameObject.SetActive(true);
-
-            // Si quieres que desaparezca después de 5 segundos, descomenta lo siguiente:
-            // if (mensajeCoroutine != null)
-            //     StopCoroutine(mensajeCoroutine);
-            // mensajeCoroutine = StartCoroutine(DesaparecerMensajeDespuesDeTiempo(5f));
         }
     }
 
